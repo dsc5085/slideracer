@@ -1,27 +1,49 @@
 package dc.slideracer;
 
 import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
+
+import dc.slideracer.screens.LevelScreen;
+import dclib.graphics.TextureCache;
+import dclib.system.ScreenManager;
 
 public class SlideRacerGame extends ApplicationAdapter {
-	SpriteBatch batch;
-	Texture img;
+	
+	private final ScreenManager screenManager = new ScreenManager();
+	private TextureCache textureCache;
+	private PolygonSpriteBatch spriteBatch;
 	
 	@Override
-	public void create () {
-		batch = new SpriteBatch();
-		img = new Texture("badlogic.jpg");
+	public final void create () {
+		textureCache = createTextureCache();
+		spriteBatch = new PolygonSpriteBatch();
+		Rectangle worldViewport = new Rectangle(0, 0, 10, 10);
+		screenManager.add(new LevelScreen(worldViewport, textureCache, spriteBatch));
 	}
 
 	@Override
-	public void render () {
-		Gdx.gl.glClearColor(1, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		batch.begin();
-		batch.draw(img, 0, 0);
-		batch.end();
+	public final void render () {
+		screenManager.render();
 	}
+	
+	@Override
+	public final void resize(final int width, final int height) {
+		screenManager.resize(width, height);
+	}
+
+	@Override
+	public final void dispose() {
+		textureCache.dispose();
+		screenManager.dispose();
+		spriteBatch.dispose();
+	}
+
+	private TextureCache createTextureCache() {
+		TextureCache textureCache = new TextureCache();
+		final String[] textureSubPaths = new String[] { "objects/" };
+		textureCache.addTextures("textures/", textureSubPaths);
+		return textureCache;
+	}
+	
 }

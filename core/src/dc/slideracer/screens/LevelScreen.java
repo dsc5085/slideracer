@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 import dc.slideracer.level.LevelController;
 import dclib.graphics.TextureCache;
+import dclib.util.InputUtils;
 
 public final class LevelScreen implements Screen {
 
@@ -20,6 +21,7 @@ public final class LevelScreen implements Screen {
 	
 	@Override
 	public void show() {
+		InputUtils.setCursorVisible(false);
 	}
 
 	@Override

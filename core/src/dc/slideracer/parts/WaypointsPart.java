@@ -42,6 +42,10 @@ public final class WaypointsPart {
 		waypoints.remove(0);
 	}
 	
+	public final boolean hasWaypoints() {
+		return !waypoints.isEmpty();
+	}
+	
 	public final List<Vector2> getWaypoints() {
 		return new ArrayList<Vector2>(waypoints);
 	}

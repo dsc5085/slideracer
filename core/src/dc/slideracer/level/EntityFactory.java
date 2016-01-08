@@ -27,7 +27,7 @@ public final class EntityFactory {
 	
 	public final Entity createRacer(final Vector3 position) {
 		Entity entity = createBaseEntity(new Vector2(1, 1), position, "objects/tank");
-		entity.attach(new SpeedPart(2));
+		entity.attach(new SpeedPart(1));
 		entity.attach(new WaypointsPart());
 		entity.attach(new RacerInputPart());
 		return entity;

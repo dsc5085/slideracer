@@ -26,7 +26,8 @@ public final class WaypointsSystem extends EntitySystem {
 				maxDistanceCovered = LinearUtils.distance(entity.get(SpeedPart.class).getSpeed(), delta);
 			} else {
 				maxDistanceCovered = 0;
-			} while (!waypointsPart.getWaypoints().isEmpty() && maxDistanceCovered > MathUtils.FLOAT_ROUNDING_ERROR) {
+			}
+			while (waypointsPart.hasWaypoints() && maxDistanceCovered > MathUtils.FLOAT_ROUNDING_ERROR) {
 				maxDistanceCovered = moveToWaypoint(entity, maxDistanceCovered);
 			}
 		}

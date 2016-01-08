@@ -30,7 +30,6 @@ public final class LevelController {
 	private final EntitySystemManager entitySystemManager = new DefaultEntitySystemManager(entityManager);
 	private final Advancer advancer;
 	private final Camera camera;
-	private final UnitConverter unitConverter;
 	private final EntityDrawer entityDrawer;
 
 	public LevelController(final Rectangle worldViewport, final TextureCache textureCache, 
@@ -40,7 +39,6 @@ public final class LevelController {
 		spawnInitialEntities();
 		advancer = createAdvancer();
 		camera = createCamera(worldViewport);
-		unitConverter = new UnitConverter(PIXELS_PER_UNIT, camera);
 		entityDrawer = new EntityDrawer(entityManager, spriteBatch, camera);
 		addSystems();
 	}
@@ -60,6 +58,7 @@ public final class LevelController {
 	}
 
 	private void addSystems() {
+		UnitConverter unitConverter = new UnitConverter(PIXELS_PER_UNIT, camera);
 		entitySystemManager.add(new WaypointsSystem());
 		entitySystemManager.add(new RacerInputSystem(unitConverter));
 		entitySystemManager.add(new DrawableSystem(unitConverter));

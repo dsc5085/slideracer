@@ -7,7 +7,6 @@ import dc.slideracer.parts.RacerInputPart;
 import dc.slideracer.parts.WaypointsPart;
 import dclib.epf.Entity;
 import dclib.epf.EntitySystem;
-import dclib.epf.parts.TransformPart;
 import dclib.geometry.UnitConverter;
 
 public final class RacerInputSystem extends EntitySystem {
@@ -21,8 +20,7 @@ public final class RacerInputSystem extends EntitySystem {
 	@Override
 	public final void updateEntity(final float delta, final Entity entity) {
 		if (entity.hasActive(RacerInputPart.class)) {
-			Vector2 waypoint = unitConverter.toWorldCoords(Gdx.input.getX(), 0);
-			waypoint.y =  entity.get(TransformPart.class).getCenter().y;
+			Vector2 waypoint = unitConverter.toWorldCoords(Gdx.input.getX(), Gdx.input.getY());
 			WaypointsPart waypointsPart = entity.get(WaypointsPart.class);
 			waypointsPart.clearWaypoints();
 			waypointsPart.addWaypoint(waypoint);

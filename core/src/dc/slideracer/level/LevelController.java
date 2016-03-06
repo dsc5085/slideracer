@@ -157,7 +157,7 @@ public final class LevelController {
 	private Entity createCliff(final List<Vector2> edge) {
 		float[] verticesArray = VertexUtils.toVerticesArray(edge);
 		Vector3 position = new Vector3(VertexUtils.minX(verticesArray), VertexUtils.minY(verticesArray), 0);
-		return entityFactory.createTerrain(verticesArray, position);
+		return entityFactory.createTerrain(position, verticesArray);
 	}
 	
 }

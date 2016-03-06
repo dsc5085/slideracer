@@ -1,7 +1,6 @@
 package dc.slideracer.level;
 
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -17,7 +16,6 @@ import dclib.graphics.ConvexHullCache;
 import dclib.graphics.RegionFactory;
 import dclib.graphics.TextureCache;
 
-//TODO: cleanup
 public final class EntityFactory {
 	
 	private final TextureCache textureCache;
@@ -36,24 +34,24 @@ public final class EntityFactory {
 		return entity;
 	}
 	
-	public final Entity createTerrain(final float[] vertices, final Vector3 position) {
-		Entity entity = new Entity();
-		String regionName = "objects/rock";
+	public final Entity createTerrain(final Vector3 position, final float[] vertices) {
 		Vector2 size = VertexUtils.bounds(vertices).getSize(new Vector2());
-		Polygon polygon = convexHullCache.create(regionName, size);
-		entity.attach(new TransformPart(polygon, position));
-		TextureRegion textureRegion = textureCache.getTextureRegion(regionName);
-		PolygonRegion region = RegionFactory.createPolygonRegion(textureRegion, vertices);
-		DrawablePart drawablePart = new DrawablePart(region);
-		entity.attach(drawablePart);
-		return entity;
+		return createBaseEntity(size, position, "objects/rock", vertices);
 	}
 	
 	private final Entity createBaseEntity(final Vector2 size, final Vector3 position, final String regionName) {
+		return createBaseEntity(size, position, regionName, null);
+	}
+	
+	private final Entity createBaseEntity(final Vector2 size, final Vector3 position, final String regionName, 
+			final float[] vertices) {
 		Entity entity = new Entity();
 		Polygon polygon = convexHullCache.create(regionName, size);
 		entity.attach(new TransformPart(polygon, position));
 		PolygonRegion region = textureCache.getPolygonRegion(regionName);
+		if (vertices != null) {
+			region = RegionFactory.createPolygonRegion(region, vertices);
+		}
 		DrawablePart drawablePart = new DrawablePart(region);
 		entity.attach(drawablePart);
 		return entity;

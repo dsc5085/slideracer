@@ -36,7 +36,7 @@ public final class EntityFactory {
 	
 	public final Entity createTerrain(final Vector3 position, final float[] vertices) {
 		Vector2 size = VertexUtils.bounds(vertices).getSize(new Vector2());
-		return createBaseEntity(size, position, "objects/rock", vertices);
+		return createBaseEntity(size, position, "bgs/rock", vertices);
 	}
 	
 	private final Entity createBaseEntity(final Vector2 size, final Vector3 position, final String regionName) {
@@ -46,12 +46,16 @@ public final class EntityFactory {
 	private final Entity createBaseEntity(final Vector2 size, final Vector3 position, final String regionName, 
 			final float[] vertices) {
 		Entity entity = new Entity();
-		Polygon polygon = convexHullCache.create(regionName, size);
-		entity.attach(new TransformPart(polygon, position));
+		Polygon polygon;
 		PolygonRegion region = textureCache.getPolygonRegion(regionName);
 		if (vertices != null) {
-			region = RegionFactory.createPolygonRegion(region, vertices);
+			polygon = new Polygon(vertices);
+			float[] regionVertices = VertexUtils.scaleVertices(vertices, 32, 32);
+			region = RegionFactory.createPolygonRegion(region.getRegion(), regionVertices);
+		} else {
+			polygon = convexHullCache.create(regionName, size);
 		}
+		entity.attach(new TransformPart(polygon, position));
 		DrawablePart drawablePart = new DrawablePart(region);
 		entity.attach(drawablePart);
 		return entity;

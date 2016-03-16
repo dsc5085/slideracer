@@ -24,7 +24,7 @@ import dclib.system.Advancer;
 public final class LevelController {
 
 	private static final int PIXELS_PER_UNIT = 32;
-	
+
 	private final EntityFactory entityFactory;
 	private final TerrainFactory terrainFactory;
 	private final EntityManager entityManager = new DefaultEntityManager();

@@ -1,6 +1,7 @@
 package dc.slideracer;
 
 import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -8,6 +9,7 @@ import dc.slideracer.level.Level;
 import dc.slideracer.screens.LevelScreen;
 import dclib.graphics.TextureCache;
 import dclib.system.ScreenManager;
+import dclib.util.PathUtils;
 
 public class SlideRacerGame extends ApplicationAdapter {
 	
@@ -42,8 +44,10 @@ public class SlideRacerGame extends ApplicationAdapter {
 
 	private TextureCache createTextureCache() {
 		TextureCache textureCache = new TextureCache();
-		final String[] textureSubPaths = new String[] { "objects/" };
-		textureCache.addTextures("textures/", textureSubPaths);
+		final String[] texturesAsAtlasSubPaths = new String[] { "objects/" };
+		textureCache.addTexturesAsAtlus("textures/", texturesAsAtlasSubPaths);
+		String backgroundsPath = PathUtils.internalToAbsolutePath("textures/bgs");
+		textureCache.addTextures(Gdx.files.absolute(backgroundsPath), "bgs/");
 		return textureCache;
 	}
 	

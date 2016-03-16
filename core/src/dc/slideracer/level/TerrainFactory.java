@@ -15,7 +15,7 @@ import dclib.geometry.VertexUtils;
 
 public class TerrainFactory {
 	
-	private static final float PATH_MIN_WIDTH = 2;
+	private static final float PATH_MIN_WIDTH = 1;
 	private static final float HORIZONTAL_MARGIN = 1;
 	private static final float EDGE_MAX_DEVIATION_X = 5; // TODO: Make this based off of player speed
 	private static final float EDGE_MAX_INCREASE_Y = 8;
@@ -31,6 +31,10 @@ public class TerrainFactory {
 	public final List<Entity> create() {
 		List<Vector2> leftCliffVertices = createLeftCliffVertices();
 		List<Vector2> rightCliffVertices = createRightCliffVertices(leftCliffVertices);
+		Rectangle bounds = level.getBounds();
+		Vector2 cornerPoint = new Vector2(bounds.x, RectangleUtils.top(bounds));
+		leftCliffVertices.add(cornerPoint);
+		leftCliffVertices.add(new Vector2(bounds.x, bounds.y));
 		List<Entity> terrain = new ArrayList<Entity>();
 		terrain.add(createCliff(leftCliffVertices));
 		terrain.add(createCliff(rightCliffVertices));
@@ -40,7 +44,6 @@ public class TerrainFactory {
 	private List<Vector2> createLeftCliffVertices() {		
 		List<Vector2> vertices = new ArrayList<Vector2>();
 		Rectangle bounds = level.getBounds();
-		vertices.add(new Vector2(bounds.x, bounds.y));
 		Vector2 start = new Vector2(bounds.x + HORIZONTAL_MARGIN, bounds.y);
 		vertices.add(start);
 		while (true) {
@@ -53,8 +56,6 @@ public class TerrainFactory {
 			float x = MathUtils.random(minX, maxX);
 			vertices.add(new Vector2(x, y));
 			if (y >= boundsTop) {
-				Vector2 cornerPoint = new Vector2(bounds.x, boundsTop);
-				vertices.add(cornerPoint);
 				return vertices;
 			}
 		}
@@ -79,10 +80,11 @@ public class TerrainFactory {
 		return vertices;
 	}
 	
-	private Entity createCliff(final List<Vector2> edge) {
-		float[] verticesArray = VertexUtils.toVerticesArray(edge);
-		Vector3 position = new Vector3(VertexUtils.minX(verticesArray), VertexUtils.minY(verticesArray), 0);
-		return entityFactory.createTerrain(position, verticesArray);
+	private Entity createCliff(final List<Vector2> verticesList) {
+		float[] vertices = VertexUtils.toVerticesArray(verticesList);
+		Vector3 position = new Vector3(VertexUtils.minX(vertices), VertexUtils.minY(vertices), 0);
+		vertices = VertexUtils.shiftVertices(vertices, -position.x, -position.y);
+		return entityFactory.createTerrain(position, vertices);
 	}
 	
 }

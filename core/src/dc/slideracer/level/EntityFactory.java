@@ -5,6 +5,10 @@ import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
+import dc.slideracer.models.CollisionType;
+import dc.slideracer.parts.CollisionTypePart;
+import dc.slideracer.parts.DamageOnCollisionPart;
+import dc.slideracer.parts.HealthPart;
 import dc.slideracer.parts.RacerInputPart;
 import dc.slideracer.parts.SpeedPart;
 import dc.slideracer.parts.WaypointsPart;
@@ -26,17 +30,22 @@ public final class EntityFactory {
 		this.convexHullCache = convexHullCache;
 	}
 	
-	public final Entity createRacer(final Vector3 position) {
-		Entity entity = createBaseEntity(new Vector2(1, 1), position, "objects/tank");
+	public final Entity createRacer(final Vector2 size, final Vector3 position) {
+		Entity entity = createBaseEntity(size, position, "objects/tank");
 		entity.attach(new SpeedPart(10));
 		entity.attach(new WaypointsPart());
 		entity.attach(new RacerInputPart());
+		entity.attach(new CollisionTypePart(CollisionType.RACER));
+		entity.attach(new HealthPart(10));
 		return entity;
 	}
 	
 	public final Entity createTerrain(final Vector3 position, final float[] vertices) {
 		Vector2 size = VertexUtils.bounds(vertices).getSize(new Vector2());
-		return createBaseEntity(size, position, "bgs/rock", vertices);
+		Entity entity = createBaseEntity(size, position, "bgs/rock", vertices);
+		entity.attach(new CollisionTypePart(CollisionType.HAZARD));
+		entity.attach(new DamageOnCollisionPart(100));
+		return entity;
 	}
 	
 	private final Entity createBaseEntity(final Vector2 size, final Vector3 position, final String regionName) {

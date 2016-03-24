@@ -44,10 +44,9 @@ public class SlideRacerGame extends ApplicationAdapter {
 
 	private TextureCache createTextureCache() {
 		TextureCache textureCache = new TextureCache();
-		final String[] texturesAsAtlasSubPaths = new String[] { "objects/" };
-		textureCache.addTexturesAsAtlus("textures/", texturesAsAtlasSubPaths);
+		textureCache.addTexturesAsAtlus("textures/objects/", "objects");
 		String backgroundsPath = PathUtils.internalToAbsolutePath("textures/bgs");
-		textureCache.addTextures(Gdx.files.absolute(backgroundsPath), "bgs/");
+		textureCache.addTextures(Gdx.files.absolute(backgroundsPath), "bgs");
 		return textureCache;
 	}
 	

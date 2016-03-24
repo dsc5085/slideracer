@@ -15,7 +15,7 @@ import dclib.geometry.VertexUtils;
 
 public class TerrainFactory {
 	
-	private static final float PATH_MIN_WIDTH = 1;
+	private static final float PATH_MIN_WIDTH = 4;
 	private static final float HORIZONTAL_MARGIN = 1;
 	private static final float EDGE_MAX_DEVIATION_X = 5; // TODO: Make this based off of player speed
 	private static final float EDGE_MAX_INCREASE_Y = 8;

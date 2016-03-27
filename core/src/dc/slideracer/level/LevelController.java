@@ -57,7 +57,8 @@ public final class LevelController {
 		final float viewportHeightToWidthRatio = 0.75f;
 		worldViewport.height = worldViewport.width * viewportHeightToWidthRatio;
 		camera = createCamera(worldViewport);
-		entityDrawer = new EntityDrawer(entityManager, spriteBatch, camera);
+		entityDrawer = new EntityDrawer(entityManager, spriteBatch, camera, PIXELS_PER_UNIT);
+		entityDrawer.setPolygonDrawing(true);
 		addSystems();
 	}
 

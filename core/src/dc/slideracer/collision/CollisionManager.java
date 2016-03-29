@@ -18,6 +18,7 @@ public final class CollisionManager {
 	}
 
 	public final void checkCollisions(final List<Entity> entities) {
+		// TODO: Check for concave polygons and throw an exception if they are present
 		for (int i = 0; i < entities.size(); i++) {
 			Entity entity1 = entities.get(i);
 			if (entity1.hasActive(CollisionTypePart.class)) {

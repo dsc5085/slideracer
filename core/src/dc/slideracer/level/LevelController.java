@@ -1,8 +1,11 @@
 package dc.slideracer.level;
 
+import java.util.List;
+
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -12,6 +15,7 @@ import dc.slideracer.collision.CollisionManager;
 import dc.slideracer.collision.DamageCollisionResolver;
 import dc.slideracer.entitysystems.RacerInputSystem;
 import dc.slideracer.entitysystems.WaypointsSystem;
+import dc.slideracer.epf.graphics.EntityColliderDrawer;
 import dc.slideracer.models.CollisionType;
 import dc.slideracer.parts.HealthPart;
 import dclib.epf.DefaultEntityManager;
@@ -20,8 +24,9 @@ import dclib.epf.Entity;
 import dclib.epf.EntityAddedListener;
 import dclib.epf.EntityManager;
 import dclib.epf.EntitySystemManager;
+import dclib.epf.graphics.EntityDrawer;
+import dclib.epf.graphics.EntitySpriteDrawer;
 import dclib.epf.systems.DrawableSystem;
-import dclib.epf.util.EntityDrawer;
 import dclib.eventing.DefaultListener;
 import dclib.geometry.LinearUtils;
 import dclib.geometry.UnitConverter;
@@ -42,9 +47,11 @@ public final class LevelController {
 	private final CollisionManager collisionManager;
 	private final Advancer advancer;
 	private final Camera camera;
-	private final EntityDrawer entityDrawer;
+	private final EntityDrawer entitySpriteDrawer;
+	private final EntityDrawer entityColliderDrawer;
 
-	public LevelController(final Level level, final TextureCache textureCache, final PolygonSpriteBatch spriteBatch) {
+	public LevelController(final Level level, final TextureCache textureCache, final PolygonSpriteBatch spriteBatch, 
+			final ShapeRenderer shapeRenderer) {
 		this.level = level;
 		ConvexHullCache convexHullCache = new ConvexHullCache(textureCache);
 		entityFactory = new EntityFactory(textureCache, convexHullCache);
@@ -57,8 +64,8 @@ public final class LevelController {
 		final float viewportHeightToWidthRatio = 0.75f;
 		worldViewport.height = worldViewport.width * viewportHeightToWidthRatio;
 		camera = createCamera(worldViewport);
-		entityDrawer = new EntityDrawer(entityManager, spriteBatch, camera, PIXELS_PER_UNIT);
-		entityDrawer.setPolygonDrawing(true);
+		entitySpriteDrawer = new EntitySpriteDrawer(spriteBatch, camera);
+		entityColliderDrawer = new EntityColliderDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
 		addSystems();
 	}
 
@@ -73,7 +80,9 @@ public final class LevelController {
 	}
 	
 	public final void draw() {
-		entityDrawer.draw();
+		List<Entity> entities = entityManager.getAll();
+		entitySpriteDrawer.draw(entities);
+		entityColliderDrawer.draw(entities);
 	}
 
 	private EntityAddedListener entityAdded() {

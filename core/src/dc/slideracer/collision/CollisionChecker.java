@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import dc.slideracer.models.CollisionType;
-import dc.slideracer.parts.CollisionTypePart;
+import dc.slideracer.parts.CollisionPart;
 import dclib.epf.Entity;
 
 // TODO: COmbine this with collision resolver
@@ -24,9 +24,9 @@ public final class CollisionChecker {
 	}
 	
 	public final boolean canCollide(final Entity collider, final Entity target) {
-		if (collider.has(CollisionTypePart.class) && target.has(CollisionTypePart.class)) {
-			CollisionType colliderType = collider.get(CollisionTypePart.class).getCollisionType();
-			CollisionType targetType = target.get(CollisionTypePart.class).getCollisionType();
+		if (collider.has(CollisionPart.class) && target.has(CollisionPart.class)) {
+			CollisionType colliderType = collider.get(CollisionPart.class).getCollisionType();
+			CollisionType targetType = target.get(CollisionPart.class).getCollisionType();
 			Set<CollisionType> collisionTargetTypes = colliderTypeToTargetTypeMap.get(colliderType);
 			return collisionTargetTypes != null && collisionTargetTypes.contains(targetType);
 		}

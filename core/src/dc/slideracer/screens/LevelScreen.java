@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import dc.slideracer.level.Level;
 import dc.slideracer.level.LevelController;
@@ -14,8 +15,9 @@ public final class LevelScreen implements Screen {
 
 	private final LevelController controller;
 	
-	public LevelScreen(final Level level, final TextureCache textureCache, final PolygonSpriteBatch spriteBatch) {
-		controller = new LevelController(level, textureCache, spriteBatch);
+	public LevelScreen(final Level level, final TextureCache textureCache, final PolygonSpriteBatch spriteBatch, 
+			final ShapeRenderer shapeRenderer) {
+		controller = new LevelController(level, textureCache, spriteBatch, shapeRenderer);
 	}
 	
 	@Override

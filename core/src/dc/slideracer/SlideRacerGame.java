@@ -3,6 +3,7 @@ package dc.slideracer;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 
 import dc.slideracer.level.Level;
@@ -16,13 +17,15 @@ public class SlideRacerGame extends ApplicationAdapter {
 	private final ScreenManager screenManager = new ScreenManager();
 	private TextureCache textureCache;
 	private PolygonSpriteBatch spriteBatch;
+	private ShapeRenderer shapeRenderer;
 	
 	@Override
 	public final void create () {
 		textureCache = createTextureCache();
 		spriteBatch = new PolygonSpriteBatch();
+		shapeRenderer = new ShapeRenderer();
 		Level level = new Level(new Rectangle(0, 0, 10, 10));
-		screenManager.add(new LevelScreen(level, textureCache, spriteBatch));
+		screenManager.add(new LevelScreen(level, textureCache, spriteBatch, shapeRenderer));
 	}
 
 	@Override
@@ -40,6 +43,7 @@ public class SlideRacerGame extends ApplicationAdapter {
 		textureCache.dispose();
 		screenManager.dispose();
 		spriteBatch.dispose();
+		shapeRenderer.dispose();
 	}
 
 	private TextureCache createTextureCache() {

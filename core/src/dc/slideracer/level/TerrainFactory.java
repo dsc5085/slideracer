@@ -7,10 +7,8 @@ import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 
 import dclib.epf.Entity;
-import dclib.geometry.BayazitDecomposer;
 import dclib.geometry.RectangleUtils;
 import dclib.geometry.VertexUtils;
 
@@ -37,8 +35,8 @@ public class TerrainFactory {
 		leftCliffVertices.add(cornerPoint);
 		leftCliffVertices.add(new Vector2(bounds.x, bounds.y));
 		List<Entity> terrain = new ArrayList<Entity>();
-		terrain.addAll(createCliff(leftCliffVertices));
-		terrain.addAll(createCliff(rightCliffVertices));
+		terrain.add(createCliff(leftCliffVertices));
+		terrain.add(createCliff(rightCliffVertices));
 		return terrain;
 	}
 	
@@ -81,16 +79,9 @@ public class TerrainFactory {
 		return vertices;
 	}
 	
-	private List<Entity> createCliff(final List<Vector2> verticesList) {
-		List<Entity> cliff = new ArrayList<Entity>();
-		List<ArrayList<Vector2>> partitions = BayazitDecomposer.convexPartition(new ArrayList<Vector2>(verticesList));
-		for (ArrayList<Vector2> partition : partitions) {
-			float[] vertices = VertexUtils.toVerticesArray(partition);
-			Vector3 position = new Vector3(VertexUtils.minX(vertices), VertexUtils.minY(vertices), 0);
-			vertices = VertexUtils.shiftVertices(vertices, -position.x, -position.y);
-			cliff.add(entityFactory.createTerrain(position, vertices));
-		}
-		return cliff;
+	private Entity createCliff(final List<Vector2> verticesList) {
+		float[] vertices = VertexUtils.toVerticesArray(verticesList);
+		return entityFactory.createTerrain(vertices);
 	}
 	
 }

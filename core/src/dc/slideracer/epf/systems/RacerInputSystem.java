@@ -1,4 +1,4 @@
-package dc.slideracer.entitysystems;
+package dc.slideracer.epf.systems;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;

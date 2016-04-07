@@ -10,13 +10,14 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
-import dc.slideracer.collision.CollisionChecker;
-import dc.slideracer.collision.CollisionManager;
-import dc.slideracer.collision.DamageCollisionResolver;
-import dc.slideracer.entitysystems.RacerInputSystem;
-import dc.slideracer.entitysystems.WaypointsSystem;
+import dc.slideracer.collision.CollisionType;
+import dc.slideracer.collision.system.CollisionChecker;
+import dc.slideracer.collision.system.CollisionManager;
+import dc.slideracer.collision.system.DamageCollisionResolver;
 import dc.slideracer.epf.graphics.EntityColliderDrawer;
-import dc.slideracer.models.CollisionType;
+import dc.slideracer.epf.systems.CollisionSystem;
+import dc.slideracer.epf.systems.RacerInputSystem;
+import dc.slideracer.epf.systems.WaypointsSystem;
 import dc.slideracer.parts.HealthPart;
 import dclib.epf.DefaultEntityManager;
 import dclib.epf.DefaultEntitySystemManager;
@@ -26,6 +27,7 @@ import dclib.epf.EntityManager;
 import dclib.epf.EntitySystemManager;
 import dclib.epf.graphics.EntityDrawer;
 import dclib.epf.graphics.EntitySpriteDrawer;
+import dclib.epf.graphics.EntityTransformDrawer;
 import dclib.epf.systems.DrawableSystem;
 import dclib.eventing.DefaultListener;
 import dclib.geometry.LinearUtils;
@@ -48,6 +50,7 @@ public final class LevelController {
 	private final Advancer advancer;
 	private final Camera camera;
 	private final EntityDrawer entitySpriteDrawer;
+	private final EntityDrawer entityTransformDrawer;
 	private final EntityDrawer entityColliderDrawer;
 
 	public LevelController(final Level level, final TextureCache textureCache, final PolygonSpriteBatch spriteBatch, 
@@ -65,6 +68,7 @@ public final class LevelController {
 		worldViewport.height = worldViewport.width * viewportHeightToWidthRatio;
 		camera = createCamera(worldViewport);
 		entitySpriteDrawer = new EntitySpriteDrawer(spriteBatch, camera);
+		entityTransformDrawer = new EntityTransformDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
 		entityColliderDrawer = new EntityColliderDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
 		addSystems();
 	}
@@ -82,6 +86,7 @@ public final class LevelController {
 	public final void draw() {
 		List<Entity> entities = entityManager.getAll();
 		entitySpriteDrawer.draw(entities);
+		entityTransformDrawer.draw(entities);
 		entityColliderDrawer.draw(entities);
 	}
 
@@ -107,6 +112,7 @@ public final class LevelController {
 
 	private void addSystems() {
 		UnitConverter unitConverter = new UnitConverter(PIXELS_PER_UNIT, camera);
+		entitySystemManager.add(new CollisionSystem());
 		entitySystemManager.add(new WaypointsSystem());
 		entitySystemManager.add(new RacerInputSystem(unitConverter));
 		entitySystemManager.add(new DrawableSystem(unitConverter));
@@ -122,8 +128,8 @@ public final class LevelController {
 		return new Advancer() {
 			@Override
 			protected void update(final float delta) {
-				collisionManager.checkCollisions(entityManager.getAll());
 				entitySystemManager.update(delta);
+				collisionManager.checkCollisions(entityManager.getAll());
 			}
 		};
 	}

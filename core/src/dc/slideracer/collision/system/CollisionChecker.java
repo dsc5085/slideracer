@@ -1,11 +1,11 @@
-package dc.slideracer.collision;
+package dc.slideracer.collision.system;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import dc.slideracer.models.CollisionType;
+import dc.slideracer.collision.CollisionType;
 import dc.slideracer.parts.CollisionPart;
 import dclib.epf.Entity;
 

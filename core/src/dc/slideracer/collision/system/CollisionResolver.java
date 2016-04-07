@@ -1,4 +1,4 @@
-package dc.slideracer.collision;
+package dc.slideracer.collision.system;
 
 import dclib.epf.Entity;
 

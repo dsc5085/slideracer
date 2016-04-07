@@ -1,4 +1,4 @@
-package dc.slideracer.models;
+package dc.slideracer.collision;
 
 public enum CollisionType {
 

@@ -1,4 +1,4 @@
-package dc.slideracer.collision;
+package dc.slideracer.collision.system;
 
 import java.util.List;
 
@@ -7,7 +7,6 @@ import com.badlogic.gdx.math.Polygon;
 
 import dc.slideracer.parts.CollisionPart;
 import dclib.epf.Entity;
-import dclib.epf.parts.TransformPart;
 
 public final class CollisionManager {
 	
@@ -18,7 +17,6 @@ public final class CollisionManager {
 	}
 
 	public final void checkCollisions(final List<Entity> entities) {
-		// TODO: Check for concave polygons and throw an exception if they are present
 		for (int i = 0; i < entities.size(); i++) {
 			Entity entity1 = entities.get(i);
 			if (entity1.hasActive(CollisionPart.class)) {
@@ -38,10 +36,8 @@ public final class CollisionManager {
 	}
 	
 	private boolean collided(final Entity e1, final Entity e2) {
-		Polygon polygon1 = e1.get(TransformPart.class).getPolygon();
-		Polygon polygon2 = e2.get(TransformPart.class).getPolygon();
-		List<Polygon> collisionPolygons1 = e1.get(CollisionPart.class).getCollisionPolygons(polygon1);
-		List<Polygon> collisionPolygons2 = e2.get(CollisionPart.class).getCollisionPolygons(polygon2);
+		List<Polygon> collisionPolygons1 = e1.get(CollisionPart.class).getPolygons();
+		List<Polygon> collisionPolygons2 = e2.get(CollisionPart.class).getPolygons();
 		for (Polygon collisionPolygon1 : collisionPolygons1) {
 			for (Polygon collisionPolygon2 : collisionPolygons2) {
 				if (Intersector.overlapConvexPolygons(collisionPolygon1, collisionPolygon2)) {

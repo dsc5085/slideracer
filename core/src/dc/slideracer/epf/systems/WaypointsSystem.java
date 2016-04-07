@@ -1,4 +1,4 @@
-package dc.slideracer.entitysystems;
+package dc.slideracer.epf.systems;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,8 +47,7 @@ public final class WaypointsSystem extends EntitySystem {
 			offset = waypointOffset;
 			waypointsPart.removeCurrentWaypoint();
 		}
-		Vector2 newPosition = transformPart.getPosition().add(offset);
-		transformPart.setPosition(newPosition);
+		transformPart.translate(offset);
 		return maxDistanceCovered - offset.len();
 	}
 

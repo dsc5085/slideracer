@@ -10,7 +10,6 @@ import com.badlogic.gdx.math.Polygon;
 import dc.slideracer.parts.CollisionPart;
 import dclib.epf.Entity;
 import dclib.epf.graphics.EntityDrawer;
-import dclib.epf.parts.TransformPart;
 import dclib.geometry.VertexUtils;
 
 public final class EntityColliderDrawer implements EntityDrawer {
@@ -31,9 +30,8 @@ public final class EntityColliderDrawer implements EntityDrawer {
 		shapeRenderer.begin(ShapeType.Line);
 		for (Entity entity : entities) {
 			if (entity.hasActive(CollisionPart.class)) {
-				TransformPart transformPart = entity.get(TransformPart.class);
 				CollisionPart collisionPart = entity.get(CollisionPart.class);
-				for (Polygon collisionPolygon : collisionPart.getCollisionPolygons(transformPart.getPolygon())) {
+				for (Polygon collisionPolygon : collisionPart.getPolygons()) {
 					float[] transformedVertices = collisionPolygon.getTransformedVertices();
 					float[] vertices = VertexUtils.scaleVertices(transformedVertices, pixelsPerUnit, pixelsPerUnit);
 					shapeRenderer.polygon(vertices);

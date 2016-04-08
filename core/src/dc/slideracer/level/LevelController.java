@@ -16,6 +16,7 @@ import dc.slideracer.collision.system.CollisionManager;
 import dc.slideracer.collision.system.DamageCollisionResolver;
 import dc.slideracer.epf.graphics.EntityColliderDrawer;
 import dc.slideracer.epf.systems.CollisionSystem;
+import dc.slideracer.epf.systems.MoveWithCameraSystem;
 import dc.slideracer.epf.systems.RacerInputSystem;
 import dc.slideracer.epf.systems.WaypointsSystem;
 import dc.slideracer.parts.HealthPart;
@@ -49,6 +50,8 @@ public final class LevelController {
 	private final CollisionManager collisionManager;
 	private final Advancer advancer;
 	private final Camera camera;
+	private final UnitConverter unitConverter;
+	private final MoveWithCameraSystem moveWithCameraSystem;
 	private final EntityDrawer entitySpriteDrawer;
 	private final EntityDrawer entityTransformDrawer;
 	private final EntityDrawer entityColliderDrawer;
@@ -67,6 +70,8 @@ public final class LevelController {
 		final float viewportHeightToWidthRatio = 0.75f;
 		worldViewport.height = worldViewport.width * viewportHeightToWidthRatio;
 		camera = createCamera(worldViewport);
+		unitConverter = new UnitConverter(PIXELS_PER_UNIT, camera);
+		moveWithCameraSystem = new MoveWithCameraSystem(camera, unitConverter);
 		entitySpriteDrawer = new EntitySpriteDrawer(spriteBatch, camera);
 		entityTransformDrawer = new EntityTransformDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
 		entityColliderDrawer = new EntityColliderDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
@@ -75,7 +80,6 @@ public final class LevelController {
 
 	public final void dispose() {
 		entityManager.dispose();
-		entitySystemManager.dispose();
 	}
 
 	public final void update(final float delta) {
@@ -114,6 +118,7 @@ public final class LevelController {
 		UnitConverter unitConverter = new UnitConverter(PIXELS_PER_UNIT, camera);
 		entitySystemManager.add(new CollisionSystem());
 		entitySystemManager.add(new WaypointsSystem());
+		entitySystemManager.add(moveWithCameraSystem);
 		entitySystemManager.add(new RacerInputSystem(unitConverter));
 		entitySystemManager.add(new DrawableSystem(unitConverter));
 	}
@@ -130,6 +135,9 @@ public final class LevelController {
 			protected void update(final float delta) {
 				entitySystemManager.update(delta);
 				collisionManager.checkCollisions(entityManager.getAll());
+				final float cameraTranslateYSpeed = PIXELS_PER_UNIT;
+				moveWithCameraSystem.setCameraLastPosition(camera.position.cpy());
+				camera.translate(0, cameraTranslateYSpeed * delta, 0);
 			}
 		};
 	}

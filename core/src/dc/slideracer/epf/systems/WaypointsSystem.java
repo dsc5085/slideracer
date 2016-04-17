@@ -20,9 +20,9 @@ public final class WaypointsSystem extends EntitySystem {
 	public final void updateEntity(final float delta, final Entity entity) {
 		if (entity.hasActive(WaypointsPart.class)) {
 			WaypointsPart waypointsPart = entity.get(WaypointsPart.class);
-			float endDistance = getPathDistance(entity) - waypointsPart.getEndBuffer();
+			float distanceToEnd = getPathDistance(entity) - waypointsPart.getEndBuffer();
 			float maxDistanceCovered;
-			if (endDistance > 0) {
+			if (distanceToEnd > 0) {
 				maxDistanceCovered = LinearUtils.distance(entity.get(SpeedPart.class).getSpeed(), delta);
 			} else {
 				maxDistanceCovered = 0;

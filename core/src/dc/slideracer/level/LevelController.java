@@ -61,9 +61,10 @@ public final class LevelController {
 		this.level = level;
 		ConvexHullCache convexHullCache = new ConvexHullCache(textureCache);
 		entityFactory = new EntityFactory(textureCache, convexHullCache);
-		terrainFactory = new TerrainFactory(level, entityFactory);
+		final Vector2 racerSize = new Vector2(1, 1);
+		terrainFactory = new TerrainFactory(level, entityFactory, racerSize);
 		entityManager.addEntityAddedListener(entityAdded());
-		spawnInitialEntities();
+		spawnInitialEntities(racerSize);
 		collisionManager = createCollisionManager();
 		advancer = createAdvancer();
 		Rectangle worldViewport = level.getBounds();
@@ -116,10 +117,10 @@ public final class LevelController {
 
 	private void addSystems() {
 		UnitConverter unitConverter = new UnitConverter(PIXELS_PER_UNIT, camera);
-		entitySystemManager.add(new CollisionSystem());
-		entitySystemManager.add(new WaypointsSystem());
 		entitySystemManager.add(moveWithCameraSystem);
+		entitySystemManager.add(new CollisionSystem());
 		entitySystemManager.add(new RacerInputSystem(unitConverter));
+		entitySystemManager.add(new WaypointsSystem());
 		entitySystemManager.add(new DrawableSystem(unitConverter));
 	}
 	
@@ -133,11 +134,11 @@ public final class LevelController {
 		return new Advancer() {
 			@Override
 			protected void update(final float delta) {
+				final float cameraTranslateYSpeed = 0.5f * PIXELS_PER_UNIT;
+				camera.translate(0, cameraTranslateYSpeed * delta, 0);
+				moveWithCameraSystem.setCameraLastPosition(camera.position.cpy());
 				entitySystemManager.update(delta);
 				collisionManager.checkCollisions(entityManager.getAll());
-				final float cameraTranslateYSpeed = PIXELS_PER_UNIT;
-				moveWithCameraSystem.setCameraLastPosition(camera.position.cpy());
-				camera.translate(0, cameraTranslateYSpeed * delta, 0);
 			}
 		};
 	}
@@ -148,11 +149,10 @@ public final class LevelController {
 		return camera;
 	}
 
-	private void spawnInitialEntities() {
-		Vector2 size = new Vector2(1, 1);
-		float racerX = LinearUtils.relativeMiddle(level.getBounds().width, size.x);
+	private void spawnInitialEntities(final Vector2 racerSize) {
+		float racerX = LinearUtils.relativeMiddle(level.getBounds().width, racerSize.x);
 		Vector3 racerPosition = new Vector3(racerX, level.getBounds().y, 1);
-		Entity racer = entityFactory.createRacer(size, racerPosition);
+		Entity racer = entityFactory.createRacer(racerSize, racerPosition);
 		entityManager.add(racer);
 		entityManager.addAll(terrainFactory.create());
 	}

@@ -85,7 +85,6 @@ public final class LevelController {
 
 	public final void update(final float delta) {
 		advancer.advance(delta);
-		camera.update();
 	}
 	
 	public final void draw() {
@@ -134,11 +133,12 @@ public final class LevelController {
 		return new Advancer() {
 			@Override
 			protected void update(final float delta) {
-				final float cameraTranslateYSpeed = 0.5f * PIXELS_PER_UNIT;
-				camera.translate(0, cameraTranslateYSpeed * delta, 0);
+				final float cameraTranslateYSpeed = 3 * PIXELS_PER_UNIT;
 				moveWithCameraSystem.setCameraLastPosition(camera.position.cpy());
+				camera.translate(0, cameraTranslateYSpeed * delta, 0);
 				entitySystemManager.update(delta);
 				collisionManager.checkCollisions(entityManager.getAll());
+				camera.update();
 			}
 		};
 	}

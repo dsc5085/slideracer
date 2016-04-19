@@ -15,6 +15,7 @@ import dc.slideracer.collision.system.CollisionChecker;
 import dc.slideracer.collision.system.CollisionManager;
 import dc.slideracer.collision.system.DamageCollisionResolver;
 import dc.slideracer.epf.graphics.EntityColliderDrawer;
+import dc.slideracer.epf.systems.CameraBoundsSystem;
 import dc.slideracer.epf.systems.CollisionSystem;
 import dc.slideracer.epf.systems.MoveWithCameraSystem;
 import dc.slideracer.epf.systems.RacerInputSystem;
@@ -120,6 +121,7 @@ public final class LevelController {
 		entitySystemManager.add(new CollisionSystem());
 		entitySystemManager.add(new RacerInputSystem(unitConverter));
 		entitySystemManager.add(new WaypointsSystem());
+		entitySystemManager.add(new CameraBoundsSystem(camera, PIXELS_PER_UNIT));
 		entitySystemManager.add(new DrawableSystem(unitConverter));
 	}
 	
@@ -133,7 +135,7 @@ public final class LevelController {
 		return new Advancer() {
 			@Override
 			protected void update(final float delta) {
-				final float cameraTranslateYSpeed = 3 * PIXELS_PER_UNIT;
+				final float cameraTranslateYSpeed = -0.4f * PIXELS_PER_UNIT;
 				moveWithCameraSystem.setCameraLastPosition(camera.position.cpy());
 				camera.translate(0, cameraTranslateYSpeed * delta, 0);
 				entitySystemManager.update(delta);

@@ -135,7 +135,7 @@ public final class LevelController {
 		return new Advancer() {
 			@Override
 			protected void update(final float delta) {
-				final float cameraTranslateYSpeed = -0.4f * PIXELS_PER_UNIT;
+				final float cameraTranslateYSpeed = PIXELS_PER_UNIT;
 				moveWithCameraSystem.setCameraLastPosition(camera.position.cpy());
 				camera.translate(0, cameraTranslateYSpeed * delta, 0);
 				entitySystemManager.update(delta);

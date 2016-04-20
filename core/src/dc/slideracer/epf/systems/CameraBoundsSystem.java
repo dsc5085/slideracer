@@ -28,6 +28,7 @@ public class CameraBoundsSystem extends EntitySystem {
 	@Override
 	public final void updateEntity(final float delta, final Entity entity) {
 		if (entity.has(CameraBoundsPart.class)) {
+			// TODO: Use polygon collision checking for bounds?
 			Rectangle viewport = CameraUtils.getViewport(camera, pixelsPerUnit);
 			TransformPart transformPart = entity.get(TransformPart.class);
 			Rectangle entityBoundingBox = transformPart.getBoundingBox();

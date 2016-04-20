@@ -7,12 +7,10 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.badlogic.gdx.math.Polygon;
-import com.badlogic.gdx.math.Vector2;
 
 import dc.slideracer.collision.CollisionType;
 import dc.slideracer.collision.PolygonPartition;
-import dclib.geometry.BayazitDecomposer;
-import dclib.geometry.VertexUtils;
+import dclib.geometry.PolygonFactory;
 
 @XmlRootElement
 public final class CollisionPart {
@@ -27,11 +25,9 @@ public final class CollisionPart {
 	
 	public CollisionPart(final CollisionType collisionType, final float[] vertices) {
 		this.collisionType = collisionType;
-		List<Vector2> verticesList = VertexUtils.toVerticesList(vertices);
-		List<List<Vector2>> partitionsVertices = BayazitDecomposer.convexPartition(verticesList);
-		for (List<Vector2> partitionVertices : partitionsVertices) {
-			float[] partitionVerticesArray = VertexUtils.toVerticesArray(partitionVertices);
-			polygonPartitions.add(new PolygonPartition(partitionVerticesArray));
+		List<float[]> partitionsVertices = PolygonFactory.triangulate(vertices);
+		for (float[] partitionVertices : partitionsVertices) {
+			polygonPartitions.add(new PolygonPartition(partitionVertices));
 		}
 	}
 	

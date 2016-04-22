@@ -15,9 +15,7 @@ import dc.slideracer.collision.system.CollisionChecker;
 import dc.slideracer.collision.system.CollisionManager;
 import dc.slideracer.collision.system.DamageCollisionResolver;
 import dc.slideracer.epf.graphics.EntityColliderDrawer;
-import dc.slideracer.epf.systems.CameraBoundsSystem;
 import dc.slideracer.epf.systems.CollisionSystem;
-import dc.slideracer.epf.systems.MoveWithCameraSystem;
 import dc.slideracer.epf.systems.RacerInputSystem;
 import dc.slideracer.epf.systems.WaypointsSystem;
 import dc.slideracer.parts.HealthPart;
@@ -30,6 +28,7 @@ import dclib.epf.EntitySystemManager;
 import dclib.epf.graphics.EntityDrawer;
 import dclib.epf.graphics.EntitySpriteDrawer;
 import dclib.epf.graphics.EntityTransformDrawer;
+import dclib.epf.parts.TransformPart;
 import dclib.epf.systems.DrawableSystem;
 import dclib.eventing.DefaultListener;
 import dclib.geometry.LinearUtils;
@@ -52,10 +51,10 @@ public final class LevelController {
 	private final Advancer advancer;
 	private final Camera camera;
 	private final UnitConverter unitConverter;
-	private final MoveWithCameraSystem moveWithCameraSystem;
 	private final EntityDrawer entitySpriteDrawer;
 	private final EntityDrawer entityTransformDrawer;
 	private final EntityDrawer entityColliderDrawer;
+	private Entity racer;
 
 	public LevelController(final Level level, final TextureCache textureCache, final PolygonSpriteBatch spriteBatch, 
 			final ShapeRenderer shapeRenderer) {
@@ -73,7 +72,6 @@ public final class LevelController {
 		worldViewport.height = worldViewport.width * viewportHeightToWidthRatio;
 		camera = createCamera(worldViewport);
 		unitConverter = new UnitConverter(PIXELS_PER_UNIT, camera);
-		moveWithCameraSystem = new MoveWithCameraSystem(camera, unitConverter);
 		entitySpriteDrawer = new EntitySpriteDrawer(spriteBatch, camera);
 		entityTransformDrawer = new EntityTransformDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
 		entityColliderDrawer = new EntityColliderDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
@@ -116,12 +114,9 @@ public final class LevelController {
 	}
 
 	private void addSystems() {
-		UnitConverter unitConverter = new UnitConverter(PIXELS_PER_UNIT, camera);
-		entitySystemManager.add(moveWithCameraSystem);
 		entitySystemManager.add(new CollisionSystem());
 		entitySystemManager.add(new RacerInputSystem(unitConverter));
 		entitySystemManager.add(new WaypointsSystem());
-		entitySystemManager.add(new CameraBoundsSystem(camera, PIXELS_PER_UNIT));
 		entitySystemManager.add(new DrawableSystem(unitConverter));
 	}
 	
@@ -135,12 +130,13 @@ public final class LevelController {
 		return new Advancer() {
 			@Override
 			protected void update(final float delta) {
-				final float cameraTranslateYSpeed = PIXELS_PER_UNIT;
-				moveWithCameraSystem.setCameraLastPosition(camera.position.cpy());
-				camera.translate(0, cameraTranslateYSpeed * delta, 0);
 				entitySystemManager.update(delta);
+				// TODO: put this into entitySystemManager
+				if (racer.isActive()) {
+					racer.get(TransformPart.class).translate(new Vector2(0, delta));
+				}
 				collisionManager.checkCollisions(entityManager.getAll());
-				camera.update();
+				updateCamera();
 			}
 		};
 	}
@@ -154,9 +150,19 @@ public final class LevelController {
 	private void spawnInitialEntities(final Vector2 racerSize) {
 		float racerX = LinearUtils.relativeMiddle(level.getBounds().width, racerSize.x);
 		Vector3 racerPosition = new Vector3(racerX, level.getBounds().y, 1);
-		Entity racer = entityFactory.createRacer(racerSize, racerPosition);
+		racer = entityFactory.createRacer(racerSize, racerPosition);
 		entityManager.add(racer);
 		entityManager.addAll(terrainFactory.create());
+	}
+	
+	private void updateCamera() {
+		Vector2 worldViewportSize = unitConverter.toWorldUnits(camera.viewportWidth, camera.viewportHeight);
+		TransformPart racerTransformPart = racer.get(TransformPart.class);
+		float newCameraX = racerTransformPart.getCenter().x  - worldViewportSize.x / 2;
+		float newCameraY = racerTransformPart.getPosition().y;
+		Rectangle newViewport = new Rectangle(newCameraX, newCameraY, worldViewportSize.x, worldViewportSize.y);
+		CameraUtils.setViewport(camera, newViewport, PIXELS_PER_UNIT);
+		camera.update();
 	}
 	
 }

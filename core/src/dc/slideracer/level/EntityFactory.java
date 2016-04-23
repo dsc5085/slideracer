@@ -15,6 +15,7 @@ import dc.slideracer.parts.WaypointsPart;
 import dclib.epf.Entity;
 import dclib.epf.parts.DrawablePart;
 import dclib.epf.parts.TransformPart;
+import dclib.epf.parts.TranslatePart;
 import dclib.geometry.VertexUtils;
 import dclib.graphics.ConvexHullCache;
 import dclib.graphics.RegionFactory;
@@ -35,6 +36,9 @@ public final class EntityFactory {
 		Polygon polygon = convexHullCache.create("objects/tank", size);
 		polygon.setPosition(position.x, position.y);
 		Entity entity = createBaseEntity(polygon, position.z, "objects/tank", region);
+		TranslatePart translatePart = new TranslatePart();
+		translatePart.setVelocity(new Vector2(0, 1));
+		entity.attach(translatePart);
 		entity.attach(new SpeedPart(10));
 		entity.attach(new WaypointsPart());
 		entity.attach(new RacerInputPart());

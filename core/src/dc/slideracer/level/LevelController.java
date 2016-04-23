@@ -30,6 +30,7 @@ import dclib.epf.graphics.EntitySpriteDrawer;
 import dclib.epf.graphics.EntityTransformDrawer;
 import dclib.epf.parts.TransformPart;
 import dclib.epf.systems.DrawableSystem;
+import dclib.epf.systems.TranslateSystem;
 import dclib.eventing.DefaultListener;
 import dclib.geometry.LinearUtils;
 import dclib.geometry.UnitConverter;
@@ -114,8 +115,9 @@ public final class LevelController {
 	}
 
 	private void addSystems() {
+		entitySystemManager.add(new TranslateSystem());
 		entitySystemManager.add(new CollisionSystem());
-		entitySystemManager.add(new RacerInputSystem(unitConverter));
+		entitySystemManager.add(new RacerInputSystem());
 		entitySystemManager.add(new WaypointsSystem());
 		entitySystemManager.add(new DrawableSystem(unitConverter));
 	}
@@ -131,10 +133,6 @@ public final class LevelController {
 			@Override
 			protected void update(final float delta) {
 				entitySystemManager.update(delta);
-				// TODO: put this into entitySystemManager
-				if (racer.isActive()) {
-					racer.get(TransformPart.class).translate(new Vector2(0, delta));
-				}
 				collisionManager.checkCollisions(entityManager.getAll());
 				updateCamera();
 			}

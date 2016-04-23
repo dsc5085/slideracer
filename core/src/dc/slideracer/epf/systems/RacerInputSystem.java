@@ -1,33 +1,36 @@
 package dc.slideracer.epf.systems;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Vector2;
 
 import dc.slideracer.parts.RacerInputPart;
-import dc.slideracer.parts.WaypointsPart;
+import dc.slideracer.parts.SpeedPart;
 import dclib.epf.Entity;
 import dclib.epf.EntitySystem;
-import dclib.epf.parts.TransformPart;
-import dclib.geometry.UnitConverter;
+import dclib.epf.parts.TranslatePart;
 
 public final class RacerInputSystem extends EntitySystem {
-
-	private final UnitConverter unitConverter;
-	
-	public RacerInputSystem(final UnitConverter unitConverter) {
-		this.unitConverter = unitConverter;
-	}
 	
 	@Override
 	public final void updateEntity(final float delta, final Entity entity) {
 		if (entity.hasActive(RacerInputPart.class)) {
-			Vector2 entityCenter = entity.get(TransformPart.class).getCenter();
-			Vector2 touchCoords = unitConverter.toWorldCoords(Gdx.input.getX(), Gdx.input.getY());
-			Vector2 waypoint = new Vector2(touchCoords.x, entityCenter.y);
-			WaypointsPart waypointsPart = entity.get(WaypointsPart.class);
-			waypointsPart.clearWaypoints();
-			waypointsPart.addWaypoint(waypoint);
+			TranslatePart translatePart = entity.get(TranslatePart.class);
+			Vector2 velocity = translatePart.getVelocity();
+			float speed = entity.get(SpeedPart.class).getSpeed();
+			velocity.x = getVelocityXMultiplier() * speed;
+			translatePart.setVelocity(velocity);
 		}
+	}
+	
+	private float getVelocityXMultiplier() {
+		float moveVelocityX = 0;
+		if (Gdx.input.isKeyPressed(Keys.A)) {
+			moveVelocityX = -1;
+		} else if (Gdx.input.isKeyPressed(Keys.S)) {
+			moveVelocityX = 1;
+		}
+		return moveVelocityX;
 	}
 
 }

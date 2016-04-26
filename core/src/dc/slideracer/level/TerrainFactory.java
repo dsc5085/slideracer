@@ -13,7 +13,9 @@ import dclib.geometry.RectangleUtils;
 import dclib.geometry.VertexUtils;
 
 public class TerrainFactory {
-	
+
+	private static final float MIN_PATH_BUFFER_RATIO = 0.1f; 
+	private static final float MAX_PATH_BUFFER_RATIO = 10; 
 	private static final float EDGE_MAX_DEVIATION_X = 5; // TODO: Make this based off of player speed
 	private static final float EDGE_MAX_INCREASE_Y = 8;
 	
@@ -31,9 +33,13 @@ public class TerrainFactory {
 		List<Vector2> leftCliffVertices = createLeftCliffVertices();
 		List<Vector2> rightCliffVertices = createRightCliffVertices(leftCliffVertices);
 		Rectangle bounds = level.getBounds();
-		Vector2 cornerPoint = new Vector2(bounds.x, RectangleUtils.top(bounds));
+		float minX = Float.MAX_VALUE;
+		for (Vector2 vertex : leftCliffVertices) {
+			minX = Math.min(vertex.x, minX);
+		}
+		Vector2 cornerPoint = new Vector2(minX, RectangleUtils.top(bounds));
 		leftCliffVertices.add(cornerPoint);
-		leftCliffVertices.add(new Vector2(bounds.x, bounds.y));
+		leftCliffVertices.add(new Vector2(minX, bounds.y));
 		List<Entity> terrain = new ArrayList<Entity>();
 		terrain.add(createCliff(leftCliffVertices));
 		terrain.add(createCliff(rightCliffVertices));
@@ -61,12 +67,13 @@ public class TerrainFactory {
 	private List<Vector2> createRightCliffVertices(final List<Vector2> leftCliffVertices) {
 		List<Vector2> vertices = new ArrayList<Vector2>();
 		Rectangle bounds = level.getBounds();
-		float pathStartWidth = RectangleUtils.right(bounds) - leftCliffVertices.get(0).x;
 		float maxX = Integer.MIN_VALUE;
+		Vector2 minPathBuffer = racerSize.cpy().scl(MIN_PATH_BUFFER_RATIO);
+		Vector2 maxPathBuffer =  racerSize.cpy().scl(MAX_PATH_BUFFER_RATIO);
 		for (Vector2 leftPoint : leftCliffVertices) {
-			float widthAlpha = (leftPoint.y - bounds.y) / bounds.height;
-			float width = Interpolation.linear.apply(pathStartWidth, racerSize.x, widthAlpha);
-			float x = leftPoint.x + width;
+			float currentYToTopRatio = (leftPoint.y - bounds.y) / bounds.height;
+			float pathBuffer = Interpolation.linear.apply(maxPathBuffer.x, minPathBuffer.x, currentYToTopRatio);
+			float x = leftPoint.x + racerSize.x * (pathBuffer + 1);
 			maxX = Math.max(x, maxX);
 			vertices.add(new Vector2(x, leftPoint.y));
 		}

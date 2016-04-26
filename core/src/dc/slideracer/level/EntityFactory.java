@@ -11,7 +11,6 @@ import dc.slideracer.parts.DamageOnCollisionPart;
 import dc.slideracer.parts.HealthPart;
 import dc.slideracer.parts.RacerInputPart;
 import dc.slideracer.parts.SpeedPart;
-import dc.slideracer.parts.WaypointsPart;
 import dclib.epf.Entity;
 import dclib.epf.parts.DrawablePart;
 import dclib.epf.parts.TransformPart;
@@ -40,7 +39,6 @@ public final class EntityFactory {
 		translatePart.setVelocity(new Vector2(0, 1));
 		entity.attach(translatePart);
 		entity.attach(new SpeedPart(10));
-		entity.attach(new WaypointsPart());
 		entity.attach(new RacerInputPart());
 		entity.attach(new CollisionPart(CollisionType.RACER, polygon.getVertices()));
 		entity.attach(new HealthPart(10));

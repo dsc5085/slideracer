@@ -17,7 +17,6 @@ import dc.slideracer.collision.system.DamageCollisionResolver;
 import dc.slideracer.epf.graphics.EntityColliderDrawer;
 import dc.slideracer.epf.systems.CollisionSystem;
 import dc.slideracer.epf.systems.RacerInputSystem;
-import dc.slideracer.epf.systems.WaypointsSystem;
 import dc.slideracer.parts.HealthPart;
 import dclib.epf.DefaultEntityManager;
 import dclib.epf.DefaultEntitySystemManager;
@@ -118,7 +117,6 @@ public final class LevelController {
 		entitySystemManager.add(new TranslateSystem());
 		entitySystemManager.add(new CollisionSystem());
 		entitySystemManager.add(new RacerInputSystem());
-		entitySystemManager.add(new WaypointsSystem());
 		entitySystemManager.add(new DrawableSystem(unitConverter));
 	}
 	

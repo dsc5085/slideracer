@@ -31,7 +31,6 @@ import dclib.epf.parts.TransformPart;
 import dclib.epf.systems.DrawableSystem;
 import dclib.epf.systems.TranslateSystem;
 import dclib.eventing.DefaultListener;
-import dclib.geometry.LinearUtils;
 import dclib.geometry.UnitConverter;
 import dclib.graphics.CameraUtils;
 import dclib.graphics.ConvexHullCache;
@@ -42,7 +41,6 @@ public final class LevelController {
 
 	private static final int PIXELS_PER_UNIT = 32;
 
-	private final Level level;
 	private final EntityFactory entityFactory;
 	private final TerrainFactory terrainFactory;
 	private final EntityManager entityManager = new DefaultEntityManager();
@@ -58,19 +56,17 @@ public final class LevelController {
 
 	public LevelController(final Level level, final TextureCache textureCache, final PolygonSpriteBatch spriteBatch, 
 			final ShapeRenderer shapeRenderer) {
-		this.level = level;
 		ConvexHullCache convexHullCache = new ConvexHullCache(textureCache);
 		entityFactory = new EntityFactory(textureCache, convexHullCache);
+		final Vector3 racerPosition = new Vector3(0, 0, 1);
 		final Vector2 racerSize = new Vector2(1, 1);
-		terrainFactory = new TerrainFactory(level, entityFactory, racerSize);
+		Rectangle racerBounds = new Rectangle(racerPosition.x, racerPosition.y, racerSize.x, racerSize.y);
+		terrainFactory = new TerrainFactory(level, entityFactory, racerBounds);
 		entityManager.addEntityAddedListener(entityAdded());
-		spawnInitialEntities(racerSize);
+		spawnInitialEntities(racerPosition, racerSize);
 		collisionManager = createCollisionManager();
 		advancer = createAdvancer();
-		Rectangle worldViewport = level.getBounds();
-		final float viewportHeightToWidthRatio = 0.75f;
-		worldViewport.height = worldViewport.width * viewportHeightToWidthRatio;
-		camera = createCamera(worldViewport);
+		camera = createCamera();
 		unitConverter = new UnitConverter(PIXELS_PER_UNIT, camera);
 		entitySpriteDrawer = new EntitySpriteDrawer(spriteBatch, camera);
 		entityTransformDrawer = new EntityTransformDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
@@ -137,15 +133,14 @@ public final class LevelController {
 		};
 	}
 	
-	private Camera createCamera(final Rectangle worldViewport) {
+	private Camera createCamera() {
 		Camera camera = new OrthographicCamera();
-		CameraUtils.setViewport(camera, worldViewport, PIXELS_PER_UNIT);
+		camera.viewportWidth = 10 * PIXELS_PER_UNIT;
+		camera.viewportHeight = 7.5f * PIXELS_PER_UNIT;
 		return camera;
 	}
 
-	private void spawnInitialEntities(final Vector2 racerSize) {
-		float racerX = LinearUtils.relativeMiddle(level.getBounds().width, racerSize.x);
-		Vector3 racerPosition = new Vector3(racerX, level.getBounds().y, 1);
+	private void spawnInitialEntities(final Vector3 racerPosition, final Vector2 racerSize) {
 		racer = entityFactory.createRacer(racerSize, racerPosition);
 		entityManager.add(racer);
 		entityManager.addAll(terrainFactory.create());

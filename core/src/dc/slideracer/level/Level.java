@@ -1,18 +1,15 @@
 package dc.slideracer.level;
 
-import com.badlogic.gdx.math.Rectangle;
-
 public final class Level {
 
-	// TODO: Should just be width.  Y is not an accounted for dimension now.
-	private final Rectangle bounds;
+	private final float height;
 	
-	public Level(final Rectangle bounds) {
-		this.bounds = bounds;
+	public Level(final float height) {
+		this.height = height;
 	}
 	
-	public final Rectangle getBounds() {
-		return new Rectangle(bounds);
+	public final float getHeight() {
+		return height;
 	}
 	
 }

@@ -36,7 +36,8 @@ public final class EntityFactory {
 		polygon.setPosition(position.x, position.y);
 		Entity entity = createBaseEntity(polygon, position.z, "objects/tank", region);
 		TranslatePart translatePart = new TranslatePart();
-		translatePart.setVelocity(new Vector2(0, 1));
+		final float velocityY = 3;
+		translatePart.setVelocity(new Vector2(0, velocityY));
 		entity.attach(translatePart);
 		entity.attach(new SpeedPart(10));
 		entity.attach(new RacerInputPart());

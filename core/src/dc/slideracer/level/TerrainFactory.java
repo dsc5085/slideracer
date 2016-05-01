@@ -35,62 +35,66 @@ public class TerrainFactory {
 	
 	public final List<Entity> create() {
 		List<Vector2> leftCliffVertices = createLeftCliffVertices();
-		List<Vector2> rightCliffVertices = createRightCliffVertices(leftCliffVertices);
-		float minX = Float.MAX_VALUE;
-		for (Vector2 vertex : leftCliffVertices) {
-			minX = Math.min(vertex.x, minX);
-		}
-		Vector2 cornerPoint = new Vector2(minX, racerBounds.y + level.getHeight());
-		leftCliffVertices.add(cornerPoint);
-		leftCliffVertices.add(new Vector2(minX, racerBounds.y));
+		float[] rightCliffVertices = createRightCliffVertices(leftCliffVertices);
+		float[] leftCliffVerticesArray = VertexUtils.toVerticesArray(leftCliffVertices);
+		float minX = VertexUtils.minX(leftCliffVerticesArray);
+		Vector2 cornerVertex = new Vector2(minX, racerBounds.y + level.getHeight());
+		leftCliffVerticesArray = VertexUtils.addVertices(leftCliffVerticesArray, cornerVertex, 
+				new Vector2(minX, racerBounds.y));
 		List<Entity> terrain = new ArrayList<Entity>();
-		terrain.add(createCliff(leftCliffVertices));
-		terrain.add(createCliff(rightCliffVertices));
+		terrain.add(entityFactory.createTerrain(leftCliffVerticesArray));
+		terrain.add(entityFactory.createTerrain(rightCliffVertices));
 		return terrain;
 	}
 	
 	private List<Vector2> createLeftCliffVertices() {		
 		List<Vector2> vertices = new ArrayList<Vector2>();
 		Vector2 pathBuffer = getPathBuffer(racerBounds.y);
-		Vector2 start = new Vector2(racerBounds.x - pathBuffer.x / 2, racerBounds.y);
-		vertices.add(start);
+		Vector2 startVertex = new Vector2(racerBounds.x - pathBuffer.x / 2, racerBounds.y);
+		vertices.add(startVertex);
+		float levelTop = racerBounds.y + level.getHeight();
 		while (true) {
-			Vector2 lastWaypoint = vertices.get(vertices.size() - 1);
-			float boundsTop = racerBounds.y + level.getHeight();
-			float y = Math.min(lastWaypoint.y + MathUtils.random(EDGE_MAX_INCREASE_Y), boundsTop);
+			Vector2 previousVertex = vertices.get(vertices.size() - 1);
 			float edgeDeviationX = MathUtils.random(-EDGE_MAX_DEVIATION_X, EDGE_MAX_DEVIATION_X);
-			float x = lastWaypoint.x + edgeDeviationX;
-			vertices.add(new Vector2(x, y));
-			if (y >= boundsTop) {
+			float vertexX = previousVertex.x + edgeDeviationX;
+			float vertexY = previousVertex.y + MathUtils.random(EDGE_MAX_INCREASE_Y);
+			vertices.add(new Vector2(vertexX, vertexY));
+			if (vertexY >= levelTop) {
 				return vertices;
 			}
 		}
 	}
 	
-	private List<Vector2> createRightCliffVertices(final List<Vector2> leftVertices) {
+	private float[] createRightCliffVertices(final List<Vector2> leftVertices) {
 		List<Vector2> vertices = new ArrayList<Vector2>();
-		float maxX = Integer.MIN_VALUE;
 		for (int i = 0; i < leftVertices.size(); i++) {
 			Vector2 leftVertex = leftVertices.get(i);
 			Vector2 pathBuffer = getPathBuffer(leftVertex.y);
-			float rightVertexMinX = Float.MIN_VALUE;
-			int nextLeftVertexIndex = i + 1;
-			if (nextLeftVertexIndex < leftVertices.size()) {
-				Vector2 nextLeftVertex = leftVertices.get(nextLeftVertexIndex);
-				Vector2 offset = VectorUtils.offset(leftVertex, nextLeftVertex);
-				float slope = offset.y  / offset.x;
-				float minHeightOfPath = racerBounds.height + pathBuffer.y;
-				rightVertexMinX = leftVertex.x + minHeightOfPath * (1 / slope);
-			}
-			float x = Math.max(leftVertex.x + racerBounds.width * (pathBuffer.x + 1), rightVertexMinX);
-			maxX = Math.max(x, maxX);
-			vertices.add(new Vector2(x, leftVertex.y));
+			float rightVertexMinX = getRightVertexMinX(leftVertices, i, pathBuffer);
+			float vertexX = Math.max(leftVertex.x + racerBounds.width * (pathBuffer.x + 1), rightVertexMinX);
+			vertices.add(new Vector2(vertexX, leftVertex.y));
 		}
+		float[] verticesArray = VertexUtils.toVerticesArray(vertices);
+		float maxX = VertexUtils.maxX(verticesArray);
 		Vector2 topRightCornerPoint = new Vector2(maxX, racerBounds.y + level.getHeight());
-		vertices.add(topRightCornerPoint);
 		Vector2 bottomRightCornerPoint = new Vector2(maxX, racerBounds.y);
-		vertices.add(bottomRightCornerPoint);
-		return vertices;
+		verticesArray = VertexUtils.addVertices(verticesArray, topRightCornerPoint, bottomRightCornerPoint);
+		return verticesArray;
+	}
+
+	private float getRightVertexMinX(final List<Vector2> leftVertices, final int leftVertexIndex, 
+			final Vector2 pathBuffer) {
+		float rightVertexMinX = Float.MIN_VALUE;
+		int nextLeftVertexIndex = leftVertexIndex + 1;
+		if (nextLeftVertexIndex < leftVertices.size()) {
+			Vector2 leftVertex = leftVertices.get(leftVertexIndex);
+			Vector2 nextLeftVertex = leftVertices.get(nextLeftVertexIndex);
+			Vector2 offset = VectorUtils.offset(leftVertex, nextLeftVertex);
+			float slope = offset.y  / offset.x;
+			float minHeightOfPath = racerBounds.height + pathBuffer.y;
+			rightVertexMinX = leftVertex.x + minHeightOfPath * (1 / slope);
+		}
+		return rightVertexMinX;
 	}
 	
 	private Vector2 getPathBuffer(final float currentY) {
@@ -98,11 +102,6 @@ public class TerrainFactory {
 		float pathBufferX = Interpolation.linear.apply(maxPathBuffer.x, minPathBuffer.x, currentYToTopRatio);
 		float pathBufferY = Interpolation.linear.apply(maxPathBuffer.y, minPathBuffer.y, currentYToTopRatio);
 		return new Vector2(pathBufferX, pathBufferY);
-	}
-	
-	private Entity createCliff(final List<Vector2> verticesList) {
-		float[] vertices = VertexUtils.toVerticesArray(verticesList);
-		return entityFactory.createTerrain(vertices);
 	}
 	
 }

@@ -47,7 +47,7 @@ public class TerrainFactory {
 		return terrain;
 	}
 	
-	private List<Vector2> createLeftCliffVertices() {		
+	private List<Vector2> createLeftCliffVertices() {
 		List<Vector2> vertices = new ArrayList<Vector2>();
 		Vector2 pathBuffer = getPathBuffer(racerBounds.y);
 		Vector2 startVertex = new Vector2(racerBounds.x - pathBuffer.x / 2, racerBounds.y);
@@ -67,38 +67,50 @@ public class TerrainFactory {
 	
 	private float[] createRightCliffVertices(final List<Vector2> leftVertices) {
 		List<Vector2> vertices = new ArrayList<Vector2>();
-		for (int i = 0; i < leftVertices.size(); i++) {
-			Vector2 leftVertex = leftVertices.get(i);
-			Vector2 pathBuffer = getPathBuffer(leftVertex.y);
-			float rightVertexMinX = getRightVertexMinX(leftVertices, i, pathBuffer);
-			float vertexX = Math.max(leftVertex.x + racerBounds.width * (pathBuffer.x + 1), rightVertexMinX);
-			vertices.add(new Vector2(vertexX, leftVertex.y));
+		Vector2 pathBuffer = getPathBuffer(racerBounds.y);
+		Vector2 startVertex = new Vector2(racerBounds.x + pathBuffer.x / 2, racerBounds.y);
+		vertices.add(startVertex);
+		Vector2 topLeftVertex = leftVertices.get(leftVertices.size() - 1);
+		while (true) {
+			Vector2 previousVertex = vertices.get(vertices.size() - 1);
+			float vertexY = previousVertex.y + MathUtils.random(EDGE_MAX_INCREASE_Y);
+			if (vertexY >= topLeftVertex.y) {
+				break;
+			} else {
+				float vertexX = getRightVertexX(vertexY, previousVertex, leftVertices);
+				vertices.add(new Vector2(vertexX, vertexY));
+			}
 		}
 		float[] verticesArray = VertexUtils.toVerticesArray(vertices);
 		float maxX = VertexUtils.maxX(verticesArray);
 		Vector2 topRightCornerPoint = new Vector2(maxX, racerBounds.y + level.getHeight());
 		Vector2 bottomRightCornerPoint = new Vector2(maxX, racerBounds.y);
-		verticesArray = VertexUtils.addVertices(verticesArray, topRightCornerPoint, bottomRightCornerPoint);
-		return verticesArray;
+		return VertexUtils.addVertices(verticesArray, topRightCornerPoint, bottomRightCornerPoint);
 	}
 
-	private float getRightVertexMinX(final List<Vector2> leftVertices, final int leftVertexIndex, 
-			final Vector2 pathBuffer) {
-		float rightVertexMinX = Float.MIN_VALUE;
-		int nextLeftVertexIndex = leftVertexIndex + 1;
-		if (nextLeftVertexIndex < leftVertices.size()) {
-			Vector2 leftVertex = leftVertices.get(leftVertexIndex);
-			Vector2 nextLeftVertex = leftVertices.get(nextLeftVertexIndex);
-			Vector2 offset = VectorUtils.offset(leftVertex, nextLeftVertex);
-			float slope = offset.y  / offset.x;
-			float minHeightOfPath = racerBounds.height + pathBuffer.y;
-			rightVertexMinX = leftVertex.x + minHeightOfPath * (1 / slope);
+	private float getRightVertexX(final float rightVertexY, final Vector2 previousRightVertex, 
+			final List<Vector2> leftVertices) {
+		// TODO: Middle of line sometimes too small for the player to get through
+		Vector2 pathBuffer = racerBounds.getSize(new Vector2()).add(getPathBuffer(rightVertexY));
+		float rightVertexX = Float.MIN_VALUE;
+		for (Vector2 leftVertex : leftVertices) {
+			if (leftVertex.y > previousRightVertex.y && leftVertex.y < rightVertexY) {
+				Vector2[] leftVertexBufferPoints = new Vector2[] { 
+						leftVertex.cpy().add(pathBuffer.x, 0),
+						leftVertex.cpy().add(-pathBuffer.x, 0),  
+						leftVertex.cpy().add(0, pathBuffer.y), 
+						leftVertex.cpy().add(0, -pathBuffer.y)};
+				for (Vector2 leftVertexBufferPoint : leftVertexBufferPoints) {
+					float canX = VectorUtils.getLineX(previousRightVertex, leftVertexBufferPoint, rightVertexY);
+					rightVertexX = Math.max(canX, rightVertexX);
+				}
+			}
 		}
-		return rightVertexMinX;
+		return rightVertexX;
 	}
 	
-	private Vector2 getPathBuffer(final float currentY) {
-		float currentYToTopRatio = (currentY - racerBounds.y) / level.getHeight();
+	private Vector2 getPathBuffer(final float vertexY) {
+		float currentYToTopRatio = (vertexY - racerBounds.y) / level.getHeight();
 		float pathBufferX = Interpolation.linear.apply(maxPathBuffer.x, minPathBuffer.x, currentYToTopRatio);
 		float pathBufferY = Interpolation.linear.apply(maxPathBuffer.y, minPathBuffer.y, currentYToTopRatio);
 		return new Vector2(pathBufferX, pathBufferY);

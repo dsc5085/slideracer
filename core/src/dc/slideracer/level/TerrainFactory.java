@@ -33,8 +33,8 @@ public class TerrainFactory {
 		float maxBeginRacerWidthRatio = 12;
 		beginPathBufferRange = new FloatRange(racerWidth * minBeginRacerWidthRatio, 
 				racerWidth * maxBeginRacerWidthRatio);
-		float minEndRacerWidthRatio = 5;
-		float maxEndRacerWidthRatio = 6;
+		float minEndRacerWidthRatio = 1;
+		float maxEndRacerWidthRatio = 2;
 		endPathBufferRange =  new FloatRange(racerWidth * minEndRacerWidthRatio, racerWidth * maxEndRacerWidthRatio);
 	}
 	
@@ -60,6 +60,7 @@ public class TerrainFactory {
 		float levelTop = racerBounds.y + level.getHeight();
 		while (true) {
 			Vector2 previousVertex = vertices.get(vertices.size() - 1);
+			// TODO: make this +-
 			float vertexOffsetY = EDGE_Y_OFFSET_RANGE.random();
 			float vertexY = previousVertex.y + vertexOffsetY;
 			float edgeAngle = EDGE_ANGLE_RANGE.random();
@@ -98,13 +99,12 @@ public class TerrainFactory {
 		float minXForPathBuffer = leftEdge.getP2().x + racerBounds.width + pathBufferRange.min();
 		float minAngleForPathBuffer = new Vector2(minXForPathBuffer, rightEdgeEndY).sub(startVertex).angle();
 		float minRightEdgeAngle = Math.min(minAngleForPathBuffer, leftEdgeAngle - EDGE_ANGLE_MAX_DIFF);
-		minRightEdgeAngle = Math.max(minRightEdgeAngle, EDGE_ANGLE_RANGE.min());
 		float maxXForPathBuffer = leftEdge.getP2().x + racerBounds.width + pathBufferRange.max();
 		float maxAngleForPathBuffer = new Vector2(maxXForPathBuffer, rightEdgeEndY).sub(startVertex).angle();
-		float maxRightEdgeAngle = Math.min(maxAngleForPathBuffer, leftEdgeAngle + EDGE_ANGLE_MAX_DIFF);
-		maxRightEdgeAngle = Math.min(maxRightEdgeAngle, EDGE_ANGLE_RANGE.max());
+		float maxRightEdgeAngle = Math.max(maxAngleForPathBuffer, leftEdgeAngle + EDGE_ANGLE_MAX_DIFF);
 		float rightEdgeAngle = MathUtils.random(minRightEdgeAngle, maxRightEdgeAngle);
-		return (float)Math.toRadians(rightEdgeAngle);
+		float clampedRightEdgeAngle = MathUtils.clamp(rightEdgeAngle, EDGE_ANGLE_RANGE.min(), EDGE_ANGLE_RANGE.max());
+		return (float)Math.toRadians(clampedRightEdgeAngle);
 	}
 	
 	private List<Vector2> getVertices(final List<Edge> edges) {

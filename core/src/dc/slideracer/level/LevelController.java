@@ -143,8 +143,8 @@ public final class LevelController {
 	
 	private Camera createCamera() {
 		Camera camera = new OrthographicCamera();
-		camera.viewportWidth = 10 * PIXELS_PER_UNIT;
-		camera.viewportHeight = 7.5f * PIXELS_PER_UNIT;
+		camera.viewportWidth = 10 * PIXELS_PER_UNIT * 10;
+		camera.viewportHeight = 7.5f * PIXELS_PER_UNIT * 10;
 		return camera;
 	}
 	

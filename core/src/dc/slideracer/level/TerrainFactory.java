@@ -80,7 +80,7 @@ public class TerrainFactory {
 			float rightEdgeOffsetY = MathUtils.random(EDGE_Y_OFFSET_RANGE.min()) * MathUtils.randomSign();
 			float rightEdgeEndY = Math.max(leftEdge.getP2().y + rightEdgeOffsetY, startVertex.y);
 			float rightEdgeAngle = getRightEdgeAngle(startVertex, leftEdge, rightEdgeEndY);
-			float rightEdgeEndX = (rightEdgeEndY - startVertex.y) / (float)Math.tan(rightEdgeAngle);
+			float rightEdgeEndX = startVertex.x + (rightEdgeEndY - startVertex.y) / (float)Math.tan(rightEdgeAngle);
 			Vector2 endVertex = new Vector2(rightEdgeEndX, rightEdgeEndY);
 			Edge rightEdge = new Edge(startVertex, endVertex);
 			rightEdges.add(rightEdge);

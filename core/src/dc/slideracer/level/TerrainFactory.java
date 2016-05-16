@@ -75,9 +75,10 @@ public class TerrainFactory {
 	private float[] createRightCliffVertices(final List<Vector2> leftVertices) {
 		List<Edge> rightEdges = new ArrayList<Edge>();
 		List<Edge> leftEdges = createEdges(leftVertices);
-		Vector2 startVertex = new Vector2(racerBounds.x + beginPathBufferRange.max() / 2, racerBounds.y);;
+		Vector2 startVertex = new Vector2(racerBounds.x + beginPathBufferRange.max() / 2, racerBounds.y);
 		for (Edge leftEdge : leftEdges) {
-			float rightEdgeEndY = leftEdge.getP2().y + MathUtils.random(EDGE_Y_OFFSET_RANGE.min());
+			float rightEdgeOffsetY = MathUtils.random(EDGE_Y_OFFSET_RANGE.min()) * MathUtils.randomSign();
+			float rightEdgeEndY = Math.max(leftEdge.getP2().y + rightEdgeOffsetY, startVertex.y);
 			float rightEdgeAngle = getRightEdgeAngle(startVertex, leftEdge, rightEdgeEndY);
 			float rightEdgeEndX = (rightEdgeEndY - startVertex.y) / (float)Math.tan(rightEdgeAngle);
 			Vector2 endVertex = new Vector2(rightEdgeEndX, rightEdgeEndY);
@@ -99,12 +100,13 @@ public class TerrainFactory {
 		float minXForPathBuffer = leftEdge.getP2().x + racerBounds.width + pathBufferRange.min();
 		float minAngleForPathBuffer = new Vector2(minXForPathBuffer, rightEdgeEndY).sub(startVertex).angle();
 		float minRightEdgeAngle = Math.min(minAngleForPathBuffer, leftEdgeAngle - EDGE_ANGLE_MAX_DIFF);
+		minRightEdgeAngle = MathUtils.clamp(minRightEdgeAngle, EDGE_ANGLE_RANGE.min(), EDGE_ANGLE_RANGE.max());
 		float maxXForPathBuffer = leftEdge.getP2().x + racerBounds.width + pathBufferRange.max();
 		float maxAngleForPathBuffer = new Vector2(maxXForPathBuffer, rightEdgeEndY).sub(startVertex).angle();
 		float maxRightEdgeAngle = Math.max(maxAngleForPathBuffer, leftEdgeAngle + EDGE_ANGLE_MAX_DIFF);
+		maxRightEdgeAngle = MathUtils.clamp(maxRightEdgeAngle, EDGE_ANGLE_RANGE.min(), EDGE_ANGLE_RANGE.max());
 		float rightEdgeAngle = MathUtils.random(minRightEdgeAngle, maxRightEdgeAngle);
-		float clampedRightEdgeAngle = MathUtils.clamp(rightEdgeAngle, EDGE_ANGLE_RANGE.min(), EDGE_ANGLE_RANGE.max());
-		return (float)Math.toRadians(clampedRightEdgeAngle);
+		return (float)Math.toRadians(rightEdgeAngle);
 	}
 	
 	private List<Vector2> getVertices(final List<Edge> edges) {

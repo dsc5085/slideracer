@@ -23,6 +23,7 @@ import dclib.epf.DefaultEntitySystemManager;
 import dclib.epf.Entity;
 import dclib.epf.EntityAddedListener;
 import dclib.epf.EntityManager;
+import dclib.epf.EntityRemovedListener;
 import dclib.epf.EntitySystemManager;
 import dclib.epf.graphics.EntityDrawer;
 import dclib.epf.graphics.EntitySpriteDrawer;
@@ -40,31 +41,31 @@ import dclib.system.Advancer;
 public final class LevelController {
 
 	private static final int PIXELS_PER_UNIT = 32;
-
+	private static final Vector3 RACER_START_POSITION = new Vector3(0, 0, 1);
+	private static final Vector2 RACER_SIZE = new Vector2(1, 1);
+	
 	private final EntityFactory entityFactory;
 	private final TerrainFactory terrainFactory;
 	private final EntityManager entityManager = new DefaultEntityManager();
 	private final EntitySystemManager entitySystemManager = new DefaultEntitySystemManager(entityManager);
-	private final CollisionManager collisionManager;
 	private final Advancer advancer;
 	private final Camera camera;
 	private final UnitConverter unitConverter;
 	private final EntityDrawer entitySpriteDrawer;
 	private final EntityDrawer entityTransformDrawer;
 	private final EntityDrawer entityColliderDrawer;
+	private CollisionManager collisionManager;
 	private Entity racer;
 
 	public LevelController(final Level level, final TextureCache textureCache, final PolygonSpriteBatch spriteBatch, 
 			final ShapeRenderer shapeRenderer) {
 		ConvexHullCache convexHullCache = new ConvexHullCache(textureCache);
 		entityFactory = new EntityFactory(textureCache, convexHullCache);
-		final Vector3 racerPosition = new Vector3(0, 0, 1);
-		final Vector2 racerSize = new Vector2(1, 1);
-		Rectangle racerBounds = new Rectangle(racerPosition.x, racerPosition.y, racerSize.x, racerSize.y);
+		Rectangle racerBounds = new Rectangle(RACER_START_POSITION.x, RACER_START_POSITION.y, RACER_SIZE.x, 
+				RACER_SIZE.y);
 		terrainFactory = new TerrainFactory(level, entityFactory, racerBounds);
 		entityManager.addEntityAddedListener(entityAdded());
-		spawnInitialEntities(racerPosition, racerSize);
-		collisionManager = createCollisionManager();
+		entityManager.addEntityRemovedListener(entityRemoved());
 		advancer = createAdvancer();
 		camera = createCamera();
 		unitConverter = new UnitConverter(PIXELS_PER_UNIT, camera);
@@ -72,6 +73,7 @@ public final class LevelController {
 		entityTransformDrawer = new EntityTransformDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
 		entityColliderDrawer = new EntityColliderDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
 		addSystems();
+		setupLevel();
 	}
 
 	public final void dispose() {
@@ -99,6 +101,18 @@ public final class LevelController {
 			}
 		};
 	}
+
+	private EntityRemovedListener entityRemoved() {
+		return new EntityRemovedListener() {
+			@Override
+			public void removed(final Entity entity) {
+				if (entity == racer) {
+					dispose();
+					setupLevel();
+				}
+			}
+		};
+	}
 	
 	private DefaultListener noHealth(final Entity entity) {
 		return new DefaultListener() {
@@ -114,12 +128,6 @@ public final class LevelController {
 		entitySystemManager.add(new CollisionSystem());
 		entitySystemManager.add(new RacerInputSystem());
 		entitySystemManager.add(new DrawableSystem(unitConverter));
-	}
-	
-	private CollisionManager createCollisionManager() {
-		CollisionChecker damageCollisionChecker = new CollisionChecker();
-		damageCollisionChecker.link(CollisionType.HAZARD, CollisionType.RACER);
-		return new CollisionManager(new DamageCollisionResolver(damageCollisionChecker));
 	}
 	
 	private Advancer createAdvancer() {
@@ -138,6 +146,17 @@ public final class LevelController {
 		camera.viewportWidth = 10 * PIXELS_PER_UNIT;
 		camera.viewportHeight = 7.5f * PIXELS_PER_UNIT;
 		return camera;
+	}
+	
+	private void setupLevel() {
+		setupCollisionManager();
+		spawnInitialEntities(RACER_START_POSITION, RACER_SIZE);
+	}
+	
+	private void setupCollisionManager() {
+		CollisionChecker damageCollisionChecker = new CollisionChecker();
+		damageCollisionChecker.link(CollisionType.HAZARD, CollisionType.RACER);
+		collisionManager = new CollisionManager(new DamageCollisionResolver(damageCollisionChecker));
 	}
 
 	private void spawnInitialEntities(final Vector3 racerPosition, final Vector2 racerSize) {

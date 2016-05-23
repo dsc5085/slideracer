@@ -23,7 +23,7 @@ public class SlideRacerGame extends ApplicationAdapter {
 		textureCache = createTextureCache();
 		spriteBatch = new PolygonSpriteBatch();
 		shapeRenderer = new ShapeRenderer();
-		Level level = new Level(80);
+		Level level = new Level(100);
 		screenManager.add(new LevelScreen(level, textureCache, spriteBatch, shapeRenderer));
 	}
 

@@ -9,47 +9,41 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 import dclib.epf.Entity;
+import dclib.geometry.RectangleUtils;
+import dclib.geometry.VectorUtils;
 import dclib.geometry.VertexUtils;
 import dclib.util.FloatRange;
+import dclib.util.Maths;
 
 public class TerrainFactory {
 
 	private static final FloatRange EDGE_ANGLE_RANGE = new FloatRange(60, 120);
-	private static final float EDGE_ANGLE_MAX_DIFF = 10;
-	private static final FloatRange EDGE_Y_OFFSET_RANGE = new FloatRange(2, 6);
 	
 	private final Level level;
 	private final EntityFactory entityFactory;
 	private final Rectangle racerBounds;
+	private final FloatRange edgeYOffsetRange;
 	private final FloatRange beginPathBufferRange;
-	private final FloatRange endPathBufferRange;
 
 	public TerrainFactory(final Level level, final EntityFactory entityFactory, final Rectangle racerBounds) {
 		this.level = level;
 		this.entityFactory = entityFactory;
 		this.racerBounds = racerBounds;
-		float racerWidth = racerBounds.width;
-		float minBeginRacerWidthRatio = 10;
-		float maxBeginRacerWidthRatio = 12;
-		beginPathBufferRange = new FloatRange(racerWidth * minBeginRacerWidthRatio, 
-				racerWidth * maxBeginRacerWidthRatio);
-		float minEndRacerWidthRatio = 1;
-		float maxEndRacerWidthRatio = 2;
-		endPathBufferRange =  new FloatRange(racerWidth * minEndRacerWidthRatio, racerWidth * maxEndRacerWidthRatio);
+		edgeYOffsetRange = new FloatRange(2 * racerBounds.height, 6 * racerBounds.height);
+		beginPathBufferRange = new FloatRange(10 * racerBounds.width, 12 * racerBounds.width);
 	}
 	
 	public final List<Entity> create() {
 		List<Vector2> leftCliffVertices = createLeftCliffVertices();
-		float[] rightCliffVertices = createRightCliffVertices(leftCliffVertices);
-		float[] leftCliffVerticesArray = VertexUtils.toVerticesArray(leftCliffVertices);
-		float minX = VertexUtils.minX(leftCliffVerticesArray);
-		Vector2 topLeftCornerVertex = new Vector2(minX, racerBounds.y + level.getHeight());
-		Vector2 bottomLeftCornerVertex = new Vector2(minX, racerBounds.y);
-		leftCliffVerticesArray = VertexUtils.addVertices(leftCliffVerticesArray, topLeftCornerVertex, 
-				bottomLeftCornerVertex);
+		List<Vector2> rightCliffVertices = createRightCliffVertices(leftCliffVertices);
 		List<Entity> terrain = new ArrayList<Entity>();
-		terrain.add(entityFactory.createTerrain(leftCliffVerticesArray));
-		terrain.add(entityFactory.createTerrain(rightCliffVertices));
+		float[] leftCliffVerticesArray = VertexUtils.toVerticesArray(leftCliffVertices);
+		float leftOutsideEdgeX = VertexUtils.minX(leftCliffVerticesArray);
+		terrain.add(createCliff(leftCliffVertices, leftOutsideEdgeX));
+		float[] rightCliffVerticesArray = VertexUtils.toVerticesArray(rightCliffVertices);
+		float rightOutsideEdgeX = VertexUtils.maxX(rightCliffVerticesArray);
+		terrain.add(createCliff(rightCliffVertices, rightOutsideEdgeX));
+		//terrain.addAll(createObstacles());
 		return terrain;
 	}
 	
@@ -60,8 +54,7 @@ public class TerrainFactory {
 		float levelTop = racerBounds.y + level.getHeight();
 		while (true) {
 			Vector2 previousVertex = vertices.get(vertices.size() - 1);
-			// TODO: make this +-
-			float vertexOffsetY = EDGE_Y_OFFSET_RANGE.random();
+			float vertexOffsetY = edgeYOffsetRange.random();
 			float vertexY = previousVertex.y + vertexOffsetY;
 			float edgeAngle = EDGE_ANGLE_RANGE.random();
 			float vertexX = previousVertex.x + vertexOffsetY / (float)Math.tan(Math.toRadians(edgeAngle));
@@ -72,12 +65,12 @@ public class TerrainFactory {
 		}
 	}
 	
-	private float[] createRightCliffVertices(final List<Vector2> leftVertices) {
+	private List<Vector2> createRightCliffVertices(final List<Vector2> leftVertices) {
 		List<Edge> rightEdges = new ArrayList<Edge>();
 		List<Edge> leftEdges = createEdges(leftVertices);
 		Vector2 startVertex = new Vector2(racerBounds.x + beginPathBufferRange.max() / 2, racerBounds.y);
 		for (Edge leftEdge : leftEdges) {
-			float rightEdgeOffsetY = MathUtils.random(EDGE_Y_OFFSET_RANGE.min()) * MathUtils.randomSign();
+			float rightEdgeOffsetY = MathUtils.random(edgeYOffsetRange.min()) * MathUtils.randomSign();
 			float rightEdgeEndY = Math.max(leftEdge.getP2().y + rightEdgeOffsetY, startVertex.y);
 			float rightEdgeAngle = getRightEdgeAngle(startVertex, leftEdge, rightEdgeEndY);
 			float rightEdgeEndX = startVertex.x + (rightEdgeEndY - startVertex.y) / (float)Math.tan(rightEdgeAngle);
@@ -85,28 +78,82 @@ public class TerrainFactory {
 			Edge rightEdge = new Edge(startVertex, endVertex);
 			rightEdges.add(rightEdge);
 			startVertex = rightEdge.getP2();
+			System.out.println(Maths.distance(rightEdgeEndX, leftEdge.getP2().x) - racerBounds.width + " " + Math.toDegrees(rightEdgeAngle));
 		}
-		List<Vector2> vertices = getVertices(rightEdges);
-		float[] verticesArray = VertexUtils.toVerticesArray(vertices);
-		float maxX = VertexUtils.maxX(verticesArray);
-		Vector2 topRightCornerPoint = new Vector2(maxX, racerBounds.y + level.getHeight());
-		Vector2 bottomRightCornerPoint = new Vector2(maxX, racerBounds.y);
-		return VertexUtils.addVertices(verticesArray, topRightCornerPoint, bottomRightCornerPoint);
+		return getVertices(rightEdges);
 	}
 
 	private float getRightEdgeAngle(final Vector2 startVertex, final Edge leftEdge, final float rightEdgeEndY) {
+		final float angleMaxDiff = 10;
 		FloatRange pathBufferRange = getPathBufferRange(rightEdgeEndY);
 		float leftEdgeAngle = leftEdge.getAngle();
 		float minXForPathBuffer = leftEdge.getP2().x + racerBounds.width + pathBufferRange.min();
 		float minAngleForPathBuffer = new Vector2(minXForPathBuffer, rightEdgeEndY).sub(startVertex).angle();
-		float minRightEdgeAngle = Math.min(minAngleForPathBuffer, leftEdgeAngle - EDGE_ANGLE_MAX_DIFF);
-		minRightEdgeAngle = MathUtils.clamp(minRightEdgeAngle, EDGE_ANGLE_RANGE.min(), EDGE_ANGLE_RANGE.max());
+		float minRightEdgeAngle = Math.min(minAngleForPathBuffer, leftEdgeAngle - angleMaxDiff);
 		float maxXForPathBuffer = leftEdge.getP2().x + racerBounds.width + pathBufferRange.max();
 		float maxAngleForPathBuffer = new Vector2(maxXForPathBuffer, rightEdgeEndY).sub(startVertex).angle();
-		float maxRightEdgeAngle = Math.max(maxAngleForPathBuffer, leftEdgeAngle + EDGE_ANGLE_MAX_DIFF);
-		maxRightEdgeAngle = MathUtils.clamp(maxRightEdgeAngle, EDGE_ANGLE_RANGE.min(), EDGE_ANGLE_RANGE.max());
+		float maxRightEdgeAngle = Math.max(maxAngleForPathBuffer, leftEdgeAngle + angleMaxDiff);
 		float rightEdgeAngle = MathUtils.random(minRightEdgeAngle, maxRightEdgeAngle);
-		return (float)Math.toRadians(rightEdgeAngle);
+		float clampedRightEdgeAngle = MathUtils.clamp(rightEdgeAngle, EDGE_ANGLE_RANGE.min(), EDGE_ANGLE_RANGE.max());
+		return (float)Math.toRadians(clampedRightEdgeAngle);
+	}
+
+	private FloatRange getPathBufferRange(final float vertexY) {
+		final FloatRange endPathBufferRange =  new FloatRange(10 * racerBounds.width, 12 * racerBounds.width);
+		float progressRatio = (vertexY - racerBounds.y) / level.getHeight();
+		// TODO: Buffer not getting respected, not fitting
+		float minPathBuffer = Interpolation.linear.apply(beginPathBufferRange.min(), endPathBufferRange.min(), 
+				progressRatio);
+		float maxPathBuffer = Interpolation.linear.apply(beginPathBufferRange.max(), endPathBufferRange.max(), 
+				progressRatio);
+		return new FloatRange(minPathBuffer, maxPathBuffer);
+	}
+	
+	private Entity createCliff(final List<Vector2> cliffVertices, final float outsideEdgeX) {
+		List<Vector2> newCliffVertices = new ArrayList<Vector2>(cliffVertices);
+		float topY = cliffVertices.get(cliffVertices.size() - 1).y;
+		Vector2 topOutsideVertex = new Vector2(outsideEdgeX, topY);
+		newCliffVertices.add(topOutsideVertex);
+		Vector2 bottomOutsideVertex = new Vector2(outsideEdgeX, cliffVertices.get(0).y);
+		newCliffVertices.add(bottomOutsideVertex);
+		float[] cliffVerticesArray = VertexUtils.toVerticesArray(newCliffVertices);
+		return entityFactory.createTerrain(cliffVerticesArray);
+	}
+	
+	private List<Entity> createObstacles(final List<Vector2> leftCliffVertices, 
+			final List<Vector2> rightCliffVertices) {
+		final FloatRange yOffsetRange = new FloatRange(5 * racerBounds.height, 10 * racerBounds.height);
+		List<Entity> obstacles = new ArrayList<Entity>();
+		float levelTop = racerBounds.y + level.getHeight();
+		float obstacleY = RectangleUtils.top(racerBounds);
+		while (true) {
+			obstacleY += yOffsetRange.random();
+			float obstacleTop = obstacleY + racerBounds.height;
+			if (obstacleTop >= levelTop) {
+				return obstacles;
+			}
+			FloatRange xRangeBottom = getXRange(obstacleY, leftCliffVertices, rightCliffVertices);
+			FloatRange xRangeTop = getXRange(obstacleTop, leftCliffVertices, rightCliffVertices);
+			// TODO: Get the left edge and right edge points that encase any of the points of the obstacle rectangle
+		}
+	}
+	
+	private FloatRange getXRange(final float y, final List<Vector2> leftCliffVertices, 
+			final List<Vector2> rightCliffVertices) {
+		float minX = getCliffX(y, leftCliffVertices);
+		float maxX = getCliffX(y, rightCliffVertices);
+		return new FloatRange(minX, maxX);
+	}
+	
+	private float getCliffX(final float y, final List<Vector2> cliffVertices) {
+		for (int i = 0; i < cliffVertices.size() - 1; i++) {
+			Vector2 currentVertex = cliffVertices.get(i);
+			Vector2 nextVertex = cliffVertices.get(i + 1);
+			if (Maths.isBetween(y, currentVertex.y, nextVertex.y)) {
+				return VectorUtils.getLineX(currentVertex, nextVertex, y);
+			}
+		}
+		throw new IllegalArgumentException("Could not calculate cliff x");
 	}
 	
 	private List<Vector2> getVertices(final List<Edge> edges) {
@@ -116,15 +163,6 @@ public class TerrainFactory {
 			vertices.add(edge.getP2());
 		}
 		return vertices;
-	}
-
-	private FloatRange getPathBufferRange(final float vertexY) {
-		float progressRatio = (vertexY - racerBounds.y) / level.getHeight();
-		float minPathBuffer = Interpolation.linear.apply(beginPathBufferRange.min(), endPathBufferRange.min(), 
-				progressRatio);
-		float maxPathBuffer = Interpolation.linear.apply(beginPathBufferRange.max(), endPathBufferRange.max(), 
-				progressRatio);
-		return new FloatRange(minPathBuffer, maxPathBuffer);
 	}
 	
 	private List<Edge> createEdges(final List<Vector2> points) {

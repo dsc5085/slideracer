@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 import dclib.epf.Entity;
+import dclib.geometry.PolygonFactory;
 import dclib.geometry.RectangleUtils;
 import dclib.geometry.VectorUtils;
 import dclib.geometry.VertexUtils;
@@ -34,20 +35,22 @@ public class TerrainFactory {
 	}
 	
 	public final List<Entity> create() {
-		List<Vector2> leftCliffVertices = createLeftCliffVertices();
-		List<Vector2> rightCliffVertices = createRightCliffVertices(leftCliffVertices);
 		List<Entity> terrain = new ArrayList<Entity>();
-		float[] leftCliffVerticesArray = VertexUtils.toVerticesArray(leftCliffVertices);
-		float leftOutsideEdgeX = VertexUtils.minX(leftCliffVerticesArray);
-		terrain.add(createCliff(leftCliffVertices, leftOutsideEdgeX));
-		float[] rightCliffVerticesArray = VertexUtils.toVerticesArray(rightCliffVertices);
-		float rightOutsideEdgeX = VertexUtils.maxX(rightCliffVerticesArray);
-		terrain.add(createCliff(rightCliffVertices, rightOutsideEdgeX));
-		//terrain.addAll(createObstacles());
+		List<Vector2> leftCliffEdgeVertices = createLeftCliffEdgeVertices();
+		float[] leftCliffEdgeVerticesArray = VertexUtils.toVerticesArray(leftCliffEdgeVertices);
+		float leftOutsideEdgeX = VertexUtils.minX(leftCliffEdgeVerticesArray);
+		List<Vector2> leftCliffVertices = createCliffVertices(leftCliffEdgeVertices, leftOutsideEdgeX);
+		terrain.add(createTerrain(leftCliffVertices));
+		List<Vector2> rightCliffEdgeVertices = createRightCliffEdgeVertices(leftCliffEdgeVertices);
+		float[] rightCliffEdgeVerticesArray = VertexUtils.toVerticesArray(rightCliffEdgeVertices);
+		float rightOutsideEdgeX = VertexUtils.maxX(rightCliffEdgeVerticesArray);
+		List<Vector2> rightCliffVertices = createCliffVertices(rightCliffEdgeVertices, rightOutsideEdgeX);
+		terrain.add(createTerrain(rightCliffVertices));
+		terrain.addAll(createObstacles(leftCliffVertices, rightCliffVertices));
 		return terrain;
 	}
 	
-	private List<Vector2> createLeftCliffVertices() {
+	private List<Vector2> createLeftCliffEdgeVertices() {
 		List<Vector2> vertices = new ArrayList<Vector2>();
 		Vector2 startVertex = new Vector2(racerBounds.x - beginPathBufferRange.max() / 2, racerBounds.y);
 		vertices.add(startVertex);
@@ -65,7 +68,7 @@ public class TerrainFactory {
 		}
 	}
 	
-	private List<Vector2> createRightCliffVertices(final List<Vector2> leftVertices) {
+	private List<Vector2> createRightCliffEdgeVertices(final List<Vector2> leftVertices) {
 		List<Edge> rightEdges = new ArrayList<Edge>();
 		List<Edge> leftEdges = createEdges(leftVertices);
 		Vector2 startVertex = new Vector2(racerBounds.x + beginPathBufferRange.max() / 2, racerBounds.y);
@@ -109,15 +112,14 @@ public class TerrainFactory {
 		return new FloatRange(minPathBuffer, maxPathBuffer);
 	}
 	
-	private Entity createCliff(final List<Vector2> cliffVertices, final float outsideEdgeX) {
-		List<Vector2> newCliffVertices = new ArrayList<Vector2>(cliffVertices);
+	private List<Vector2> createCliffVertices(final List<Vector2> cliffEdgeVertices, final float outsideEdgeX) {
+		List<Vector2> cliffVertices = new ArrayList<Vector2>(cliffEdgeVertices);
 		float topY = cliffVertices.get(cliffVertices.size() - 1).y;
 		Vector2 topOutsideVertex = new Vector2(outsideEdgeX, topY);
-		newCliffVertices.add(topOutsideVertex);
+		cliffVertices.add(topOutsideVertex);
 		Vector2 bottomOutsideVertex = new Vector2(outsideEdgeX, cliffVertices.get(0).y);
-		newCliffVertices.add(bottomOutsideVertex);
-		float[] cliffVerticesArray = VertexUtils.toVerticesArray(newCliffVertices);
-		return entityFactory.createTerrain(cliffVerticesArray);
+		cliffVertices.add(bottomOutsideVertex);
+		return cliffVertices;
 	}
 	
 	private List<Entity> createObstacles(final List<Vector2> leftCliffVertices, 
@@ -132,13 +134,31 @@ public class TerrainFactory {
 			if (obstacleTop >= levelTop) {
 				return obstacles;
 			}
-			FloatRange xRangeBottom = getXRange(obstacleY, leftCliffVertices, rightCliffVertices);
-			FloatRange xRangeTop = getXRange(obstacleTop, leftCliffVertices, rightCliffVertices);
-			// TODO: Get the left edge and right edge points that encase any of the points of the obstacle rectangle
+			List<Entity> newObstacles = createObstacle(leftCliffVertices, rightCliffVertices, obstacleY);
+			obstacles.addAll(newObstacles);
 		}
 	}
+
+	private List<Entity> createObstacle(final List<Vector2> leftCliffVertices, final List<Vector2> rightCliffVertices, 
+			final float obstacleY) {
+		// TODO: Make this better
+		final float obstaclePathBuffer = 1;
+		List<Entity> obstacles = new ArrayList<Entity>();
+		FloatRange pathRangeBottom = getPathRange(obstacleY, leftCliffVertices, rightCliffVertices);
+		float gapWidth = (obstaclePathBuffer + 1) * racerBounds.width;
+		float maxGapX = pathRangeBottom.max() - gapWidth;
+		float gapX = MathUtils.random(pathRangeBottom.min(), maxGapX);
+		float[] leftObstacleVertices = PolygonFactory.createRectangleVertices(pathRangeBottom.min(), obstacleY, 
+				gapX - pathRangeBottom.min(), racerBounds.height);
+		obstacles.add(entityFactory.createTerrain(leftObstacleVertices));
+		float rightObstacleX = gapX + gapWidth;
+		float[] rightObstacleVertices = PolygonFactory.createRectangleVertices(rightObstacleX, obstacleY, 
+				pathRangeBottom.max() - rightObstacleX, racerBounds.height);
+		obstacles.add(entityFactory.createTerrain(rightObstacleVertices));
+		return obstacles;
+	}
 	
-	private FloatRange getXRange(final float y, final List<Vector2> leftCliffVertices, 
+	private FloatRange getPathRange(final float y, final List<Vector2> leftCliffVertices, 
 			final List<Vector2> rightCliffVertices) {
 		float minX = getCliffX(y, leftCliffVertices);
 		float maxX = getCliffX(y, rightCliffVertices);
@@ -154,6 +174,11 @@ public class TerrainFactory {
 			}
 		}
 		throw new IllegalArgumentException("Could not calculate cliff x");
+	}
+	
+	private Entity createTerrain(final List<Vector2> vertices) {
+		float[] verticesArray = VertexUtils.toVerticesArray(vertices);
+		return entityFactory.createTerrain(verticesArray);
 	}
 	
 	private List<Vector2> getVertices(final List<Edge> edges) {

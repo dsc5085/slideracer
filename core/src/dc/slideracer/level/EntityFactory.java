@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 import dc.slideracer.collision.CollisionType;
+import dc.slideracer.parts.AccelerationPart;
 import dc.slideracer.parts.CollisionPart;
 import dc.slideracer.parts.DamageOnCollisionPart;
 import dc.slideracer.parts.HealthPart;
@@ -40,6 +41,7 @@ public final class EntityFactory {
 		translatePart.setVelocity(new Vector2(0, velocityY));
 		entity.attach(translatePart);
 		entity.attach(new SpeedPart(10));
+		entity.attach(new AccelerationPart(10));
 		entity.attach(new RacerInputPart());
 		entity.attach(new CollisionPart(CollisionType.RACER, polygon.getVertices()));
 		entity.attach(new HealthPart(10));

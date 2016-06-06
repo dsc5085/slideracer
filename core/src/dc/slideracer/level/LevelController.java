@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -16,7 +17,10 @@ import dc.slideracer.collision.system.CollisionManager;
 import dc.slideracer.collision.system.DamageCollisionResolver;
 import dc.slideracer.epf.graphics.EntityColliderDrawer;
 import dc.slideracer.epf.systems.CollisionSystem;
+import dc.slideracer.epf.systems.ColorChangeSystem;
 import dc.slideracer.epf.systems.RacerInputSystem;
+import dc.slideracer.epf.systems.TimedDeathSystem;
+import dc.slideracer.parts.FragsPart;
 import dc.slideracer.parts.HealthPart;
 import dclib.epf.DefaultEntityManager;
 import dclib.epf.DefaultEntitySystemManager;
@@ -28,6 +32,7 @@ import dclib.epf.EntitySystemManager;
 import dclib.epf.graphics.EntityDrawer;
 import dclib.epf.graphics.EntitySpriteDrawer;
 import dclib.epf.graphics.EntityTransformDrawer;
+import dclib.epf.parts.DrawablePart;
 import dclib.epf.parts.TransformPart;
 import dclib.epf.systems.DrawableSystem;
 import dclib.epf.systems.TranslateSystem;
@@ -106,6 +111,7 @@ public final class LevelController {
 		return new EntityRemovedListener() {
 			@Override
 			public void removed(final Entity entity) {
+				fragment(entity);
 				if (entity == racer) {
 					dispose();
 					setupLevel();
@@ -127,6 +133,8 @@ public final class LevelController {
 		entitySystemManager.add(new TranslateSystem());
 		entitySystemManager.add(new CollisionSystem());
 		entitySystemManager.add(new RacerInputSystem());
+		entitySystemManager.add(new TimedDeathSystem(entityManager));
+		entitySystemManager.add(new ColorChangeSystem());
 		entitySystemManager.add(new DrawableSystem(unitConverter));
 	}
 	
@@ -146,6 +154,23 @@ public final class LevelController {
 		camera.viewportWidth = 10 * PIXELS_PER_UNIT;
 		camera.viewportHeight = 7.5f * PIXELS_PER_UNIT;
 		return camera;
+	}
+	
+	private void fragment(final Entity entity) {
+		if (entity.hasActive(FragsPart.class)) {
+			DrawablePart drawablePart = entity.get(DrawablePart.class);
+			TransformPart transformPart = entity.get(TransformPart.class);
+			Polygon polygon = transformPart.getPolygon();
+			FragParams fragParams = new FragParams();
+			fragParams.fadeTime = 2;
+			fragParams.height = 8;
+			fragParams.width = 8;
+			fragParams.speedModifier = 20;
+			fragParams.z = transformPart.getZ();
+			List<Entity> frags = Fragmenter.createFrags(drawablePart.getSprite().getRegion(), polygon, fragParams, 
+					unitConverter);
+			entityManager.addAll(frags);
+		}
 	}
 	
 	private void setupLevel() {

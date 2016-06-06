@@ -9,6 +9,7 @@ import dc.slideracer.collision.CollisionType;
 import dc.slideracer.parts.AccelerationPart;
 import dc.slideracer.parts.CollisionPart;
 import dc.slideracer.parts.DamageOnCollisionPart;
+import dc.slideracer.parts.FragsPart;
 import dc.slideracer.parts.HealthPart;
 import dc.slideracer.parts.RacerInputPart;
 import dc.slideracer.parts.SpeedPart;
@@ -45,6 +46,7 @@ public final class EntityFactory {
 		entity.attach(new RacerInputPart());
 		entity.attach(new CollisionPart(CollisionType.RACER, polygon.getVertices()));
 		entity.attach(new HealthPart(10));
+		entity.attach(new FragsPart());
 		return entity;
 	}
 	

@@ -30,16 +30,29 @@ public final class RacerInputSystem extends EntitySystem {
 	
 	private void updateVelocity(final float delta, final Entity entity, final float finalVelocityX) {
 		TranslatePart translatePart = entity.get(TranslatePart.class);
-		float acceleration = entity.get(AccelerationPart.class).getAcceleration() * delta;
 		Vector2 velocity = translatePart.getVelocity();
-		if (Maths.distance(velocity.x, finalVelocityX) <= acceleration) {
+		float acceleration = entity.get(AccelerationPart.class).getAcceleration();
+		float velocityChange = getVelocityXChange(delta, velocity.x, finalVelocityX, acceleration);
+		if (Maths.distance(velocity.x, finalVelocityX) <= velocityChange) {
 			velocity.x = finalVelocityX;
 		} else if (velocity.x > finalVelocityX) {
-			velocity.x -= acceleration;
+			velocity.x -= velocityChange;
 		} else {
-			velocity.x += acceleration;
+			velocity.x += velocityChange;
 		}
 		translatePart.setVelocity(velocity);
+	}
+	
+	private float getVelocityXChange(final float delta, final float velocityX, final float finalVelocityX, 
+			final float acceleration) {
+		float velocityChange;
+		if (velocityX == Math.signum(finalVelocityX)) {
+			velocityChange = acceleration * delta;
+		} else {
+			final float brakeMultiplier = 2;
+			velocityChange = acceleration * brakeMultiplier * delta;
+		}
+		return velocityChange;
 	}
 
 }

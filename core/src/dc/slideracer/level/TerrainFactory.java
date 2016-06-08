@@ -82,7 +82,6 @@ public class TerrainFactory {
 			Edge rightEdge = new Edge(startVertex, endVertex);
 			rightEdges.add(rightEdge);
 			startVertex = rightEdge.getP2();
-			System.out.println(Maths.distance(rightEdgeEndX, leftEdge.getP2().x) - racerBounds.width + " " + Math.toDegrees(rightEdgeAngle));
 		}
 		return getVertices(rightEdges);
 	}
@@ -149,12 +148,14 @@ public class TerrainFactory {
 		float gapWidth = (obstaclePathBuffer + 1) * racerBounds.width;
 		float maxGapX = pathRangeBottom.max() - gapWidth;
 		float gapX = MathUtils.random(pathRangeBottom.min(), maxGapX);
-		float[] leftObstacleVertices = PolygonFactory.createRectangleVertices(pathRangeBottom.min(), obstacleY, 
-				gapX - pathRangeBottom.min(), racerBounds.height);
+		float leftObstacleX = getMinX(leftCliffVertices);
+		float[] leftObstacleVertices = PolygonFactory.createRectangleVertices(leftObstacleX, obstacleY, 
+				gapX - leftObstacleX, racerBounds.height);
 		obstacles.add(entityFactory.createTerrain(leftObstacleVertices));
 		float rightObstacleX = gapX + gapWidth;
+		float rightObstacleEndX = getMaxX(rightCliffVertices);
 		float[] rightObstacleVertices = PolygonFactory.createRectangleVertices(rightObstacleX, obstacleY, 
-				pathRangeBottom.max() - rightObstacleX, racerBounds.height);
+				rightObstacleEndX - rightObstacleX, racerBounds.height);
 		obstacles.add(entityFactory.createTerrain(rightObstacleVertices));
 		return obstacles;
 	}
@@ -197,6 +198,22 @@ public class TerrainFactory {
 			edges.add(new Edge(points.get(i), points.get(i + 1)));
 		}
 		return edges;
+	}
+	
+	private final float getMinX(final List<Vector2> vertices) {
+		float minX = vertices.get(0).x;
+		for (Vector2 vertex : vertices) {
+			minX = Math.min(vertex.x, minX);
+		}
+		return minX;
+	}
+	
+	private final float getMaxX(final List<Vector2> vertices) {
+		float maxX = vertices.get(0).x;
+		for (Vector2 vertex : vertices) {
+			maxX = Math.max(vertex.x, maxX);
+		}
+		return maxX;
 	}
 	
 	private class Edge {

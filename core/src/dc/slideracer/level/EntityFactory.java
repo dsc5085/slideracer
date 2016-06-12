@@ -1,5 +1,6 @@
 package dc.slideracer.level;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
@@ -8,11 +9,14 @@ import com.badlogic.gdx.math.Vector3;
 import dc.slideracer.collision.CollisionType;
 import dc.slideracer.parts.AccelerationPart;
 import dc.slideracer.parts.CollisionPart;
+import dc.slideracer.parts.ColorChangePart;
 import dc.slideracer.parts.DamageOnCollisionPart;
 import dc.slideracer.parts.FragsPart;
 import dc.slideracer.parts.HealthPart;
 import dc.slideracer.parts.RacerInputPart;
+import dc.slideracer.parts.SpawnOnDeathPart;
 import dc.slideracer.parts.SpeedPart;
+import dc.slideracer.parts.TimedDeathPart;
 import dclib.epf.Entity;
 import dclib.epf.parts.DrawablePart;
 import dclib.epf.parts.TransformPart;
@@ -36,7 +40,7 @@ public final class EntityFactory {
 		PolygonRegion region = textureCache.getPolygonRegion("objects/tank");
 		Polygon polygon = convexHullCache.create("objects/tank", size);
 		polygon.setPosition(position.x, position.y);
-		Entity entity = createBaseEntity(polygon, position.z, "objects/tank", region);
+		Entity entity = createBaseEntity(polygon, position.z, region);
 		TranslatePart translatePart = new TranslatePart();
 		final float velocityY = 3;
 		translatePart.setVelocity(new Vector2(0, velocityY));
@@ -46,7 +50,18 @@ public final class EntityFactory {
 		entity.attach(new RacerInputPart());
 		entity.attach(new CollisionPart(CollisionType.RACER, polygon.getVertices()));
 		entity.attach(new HealthPart(10));
+		entity.attach(new SpawnOnDeathPart("explosion"));
 		entity.attach(new FragsPart());
+		return entity;
+	}
+
+	public final Entity createExplosion() {
+		PolygonRegion region = textureCache.getPolygonRegion("objects/explosion");
+		Vector2 size = new Vector2(1, 1);
+		Polygon polygon = convexHullCache.create("objects/explosion", size);
+		Entity entity = createBaseEntity(polygon, 1, region);
+		entity.attach(new ColorChangePart(1, Color.WHITE.cpy(), Color.CLEAR.cpy()));
+		entity.attach(new TimedDeathPart(1));
 		return entity;
 	}
 	
@@ -55,14 +70,13 @@ public final class EntityFactory {
 		Polygon polygon = VertexUtils.toPolygon(vertices);
 		float[] regionVertices = VertexUtils.scaleVertices(vertices, 32, 32);
 		region = RegionFactory.createPolygonRegion(region.getRegion(), regionVertices);
-		Entity entity = createBaseEntity(polygon, 0, "bgs/rock", region);
+		Entity entity = createBaseEntity(polygon, 0, region);
 		entity.attach(new CollisionPart(CollisionType.HAZARD, polygon.getVertices()));
 		entity.attach(new DamageOnCollisionPart(100));
 		return entity;
 	}
 	
-	private final Entity createBaseEntity(final Polygon polygon, final float z, final String regionName, 
-			final PolygonRegion region) {
+	private final Entity createBaseEntity(final Polygon polygon, final float z, final PolygonRegion region) {
 		Entity entity = new Entity();
 		entity.attach(new TransformPart(polygon, z));
 		DrawablePart drawablePart = new DrawablePart(region);

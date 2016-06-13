@@ -9,7 +9,6 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 import dclib.epf.Entity;
-import dclib.geometry.PolygonFactory;
 import dclib.geometry.RectangleUtils;
 import dclib.geometry.VectorUtils;
 import dclib.geometry.VertexUtils;
@@ -25,13 +24,15 @@ public class TerrainFactory {
 	private final Rectangle racerBounds;
 	private final FloatRange edgeYOffsetRange;
 	private final FloatRange beginPathBufferRange;
+	private final FloatRange endPathBufferRange;
 
 	public TerrainFactory(final Level level, final EntityFactory entityFactory, final Rectangle racerBounds) {
 		this.level = level;
 		this.entityFactory = entityFactory;
 		this.racerBounds = racerBounds;
 		edgeYOffsetRange = new FloatRange(2 * racerBounds.height, 6 * racerBounds.height);
-		beginPathBufferRange = new FloatRange(10 * racerBounds.width, 12 * racerBounds.width);
+		beginPathBufferRange = new FloatRange(6 * racerBounds.width, 8 * racerBounds.width);
+		endPathBufferRange =  new FloatRange(3 * racerBounds.width, 4 * racerBounds.width);
 	}
 	
 	public final List<Entity> create() {
@@ -102,9 +103,7 @@ public class TerrainFactory {
 	}
 
 	private FloatRange getPathBufferRange(final float vertexY) {
-		final FloatRange endPathBufferRange =  new FloatRange(10 * racerBounds.width, 12 * racerBounds.width);
 		float progressRatio = (vertexY - racerBounds.y) / level.getHeight();
-		// TODO: Buffer not getting respected, not fitting
 		float minPathBuffer = Interpolation.linear.apply(beginPathBufferRange.min(), endPathBufferRange.min(), 
 				progressRatio);
 		float maxPathBuffer = Interpolation.linear.apply(beginPathBufferRange.max(), endPathBufferRange.max(), 
@@ -130,32 +129,40 @@ public class TerrainFactory {
 		float obstacleY = RectangleUtils.top(racerBounds);
 		while (true) {
 			obstacleY += yOffsetRange.random();
-			float obstacleTop = obstacleY + racerBounds.height;
-			if (obstacleTop >= levelTop) {
+			FloatRange obstacleYRange = new FloatRange(obstacleY, obstacleY + racerBounds.height);
+			if (obstacleYRange.max() >= levelTop) {
 				return obstacles;
 			}
-			List<Entity> newObstacles = createObstacle(leftCliffVertices, rightCliffVertices, obstacleY);
+			List<Entity> newObstacles = createObstaclePair(leftCliffVertices, rightCliffVertices, obstacleYRange);
 			obstacles.addAll(newObstacles);
 		}
 	}
 
-	private List<Entity> createObstacle(final List<Vector2> leftCliffVertices, final List<Vector2> rightCliffVertices, 
-			final float obstacleY) {
-		// TODO: Make this better
-		final float obstaclePathBuffer = 1;
+	private List<Entity> createObstaclePair(final List<Vector2> leftCliffVertices, 
+			final List<Vector2> rightCliffVertices, final FloatRange obstacleYRange) {
+		// This is so the obstacle looks conjoined with the cliff
+		final float obstacleBaseDepth = racerBounds.width;
+		final float obstaclePathBuffer = racerBounds.width;
 		List<Entity> obstacles = new ArrayList<Entity>();
-		FloatRange pathRangeBottom = getPathRange(obstacleY, leftCliffVertices, rightCliffVertices);
-		float gapWidth = (obstaclePathBuffer + 1) * racerBounds.width;
+		FloatRange pathRangeBottom = getPathRange(obstacleYRange.min(), leftCliffVertices, rightCliffVertices);
+		float gapWidth = racerBounds.width + obstaclePathBuffer;
 		float maxGapX = pathRangeBottom.max() - gapWidth;
 		float gapX = MathUtils.random(pathRangeBottom.min(), maxGapX);
-		float leftObstacleX = getMinX(leftCliffVertices);
-		float[] leftObstacleVertices = PolygonFactory.createRectangleVertices(leftObstacleX, obstacleY, 
-				gapX - leftObstacleX, racerBounds.height);
+		FloatRange pathRange = getPathRange(obstacleYRange.min(), leftCliffVertices, rightCliffVertices); 
+		float leftObstacleX = pathRange.min() - obstacleBaseDepth;
+		float[] leftObstacleVertices = new float[] { 
+			leftObstacleX, obstacleYRange.min(), 
+			gapX, obstacleYRange.random(), 
+			leftObstacleX, obstacleYRange.max()
+		};
 		obstacles.add(entityFactory.createTerrain(leftObstacleVertices));
 		float rightObstacleX = gapX + gapWidth;
-		float rightObstacleEndX = getMaxX(rightCliffVertices);
-		float[] rightObstacleVertices = PolygonFactory.createRectangleVertices(rightObstacleX, obstacleY, 
-				rightObstacleEndX - rightObstacleX, racerBounds.height);
+		float rightObstacleEndX = pathRange.max() + obstacleBaseDepth;
+		float[] rightObstacleVertices = new float[] { 
+			rightObstacleEndX, obstacleYRange.min(), 
+			rightObstacleX, obstacleYRange.random(), 
+			rightObstacleEndX, obstacleYRange.max()
+		};
 		obstacles.add(entityFactory.createTerrain(rightObstacleVertices));
 		return obstacles;
 	}
@@ -198,22 +205,6 @@ public class TerrainFactory {
 			edges.add(new Edge(points.get(i), points.get(i + 1)));
 		}
 		return edges;
-	}
-	
-	private final float getMinX(final List<Vector2> vertices) {
-		float minX = vertices.get(0).x;
-		for (Vector2 vertex : vertices) {
-			minX = Math.min(vertex.x, minX);
-		}
-		return minX;
-	}
-	
-	private final float getMaxX(final List<Vector2> vertices) {
-		float maxX = vertices.get(0).x;
-		for (Vector2 vertex : vertices) {
-			maxX = Math.max(vertex.x, maxX);
-		}
-		return maxX;
 	}
 	
 	private class Edge {

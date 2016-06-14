@@ -25,6 +25,8 @@ public class TerrainFactory {
 	private final FloatRange edgeYOffsetRange;
 	private final FloatRange beginPathBufferRange;
 	private final FloatRange endPathBufferRange;
+	// This is so the obstacle looks conjoined with the cliff
+	private final float obstacleBaseDepth;
 
 	public TerrainFactory(final Level level, final EntityFactory entityFactory, final Rectangle racerBounds) {
 		this.level = level;
@@ -33,6 +35,7 @@ public class TerrainFactory {
 		edgeYOffsetRange = new FloatRange(2 * racerBounds.height, 6 * racerBounds.height);
 		beginPathBufferRange = new FloatRange(6 * racerBounds.width, 8 * racerBounds.width);
 		endPathBufferRange =  new FloatRange(3 * racerBounds.width, 4 * racerBounds.width);
+		obstacleBaseDepth = racerBounds.width;
 	}
 	
 	public final List<Entity> create() {
@@ -123,13 +126,14 @@ public class TerrainFactory {
 	
 	private List<Entity> createObstacles(final List<Vector2> leftCliffVertices, 
 			final List<Vector2> rightCliffVertices) {
+		final float obstacleHeight = racerBounds.height * 1.5f;
 		final FloatRange yOffsetRange = new FloatRange(5 * racerBounds.height, 10 * racerBounds.height);
 		List<Entity> obstacles = new ArrayList<Entity>();
 		float levelTop = racerBounds.y + level.getHeight();
 		float obstacleY = RectangleUtils.top(racerBounds);
 		while (true) {
 			obstacleY += yOffsetRange.random();
-			FloatRange obstacleYRange = new FloatRange(obstacleY, obstacleY + racerBounds.height);
+			FloatRange obstacleYRange = new FloatRange(obstacleY, obstacleY + obstacleHeight);
 			if (obstacleYRange.max() >= levelTop) {
 				return obstacles;
 			}
@@ -140,8 +144,6 @@ public class TerrainFactory {
 
 	private List<Entity> createObstaclePair(final List<Vector2> leftCliffVertices, 
 			final List<Vector2> rightCliffVertices, final FloatRange obstacleYRange) {
-		// This is so the obstacle looks conjoined with the cliff
-		final float obstacleBaseDepth = racerBounds.width;
 		final float obstaclePathBuffer = racerBounds.width;
 		List<Entity> obstacles = new ArrayList<Entity>();
 		FloatRange pathRangeBottom = getPathRange(obstacleYRange.min(), leftCliffVertices, rightCliffVertices);
@@ -149,13 +151,23 @@ public class TerrainFactory {
 		float maxGapX = pathRangeBottom.max() - gapWidth;
 		float gapX = MathUtils.random(pathRangeBottom.min(), maxGapX);
 		FloatRange pathRange = getPathRange(obstacleYRange.min(), leftCliffVertices, rightCliffVertices); 
+		obstacles.add(createLeftObstacle(obstacleYRange, gapX, pathRange));
+		obstacles.add(createRightObstacle(obstacleYRange, gapWidth, gapX, pathRange));
+		return obstacles;
+	}
+
+	private Entity createLeftObstacle(final FloatRange obstacleYRange, final float gapX, final FloatRange pathRange) {
 		float leftObstacleX = pathRange.min() - obstacleBaseDepth;
 		float[] leftObstacleVertices = new float[] { 
 			leftObstacleX, obstacleYRange.min(), 
 			gapX, obstacleYRange.random(), 
 			leftObstacleX, obstacleYRange.max()
 		};
-		obstacles.add(entityFactory.createTerrain(leftObstacleVertices));
+		return entityFactory.createTerrain(leftObstacleVertices);
+	}
+
+	private Entity createRightObstacle(final FloatRange obstacleYRange, final float gapWidth, final float gapX, 
+			final FloatRange pathRange) {
 		float rightObstacleX = gapX + gapWidth;
 		float rightObstacleEndX = pathRange.max() + obstacleBaseDepth;
 		float[] rightObstacleVertices = new float[] { 
@@ -163,8 +175,7 @@ public class TerrainFactory {
 			rightObstacleX, obstacleYRange.random(), 
 			rightObstacleEndX, obstacleYRange.max()
 		};
-		obstacles.add(entityFactory.createTerrain(rightObstacleVertices));
-		return obstacles;
+		return entityFactory.createTerrain(rightObstacleVertices);
 	}
 	
 	private FloatRange getPathRange(final float y, final List<Vector2> leftCliffVertices, 

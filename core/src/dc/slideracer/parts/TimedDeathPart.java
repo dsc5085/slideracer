@@ -4,10 +4,7 @@ import dclib.util.Timer;
 
 public final class TimedDeathPart {
 
-	private Timer deathTimer;
-	
-	public TimedDeathPart() {
-	}
+	private final Timer deathTimer;
 	
 	public TimedDeathPart(final float deathTime) {
 		deathTimer = new Timer(deathTime);

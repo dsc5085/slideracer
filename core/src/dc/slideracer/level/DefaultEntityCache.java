@@ -15,6 +15,8 @@ public final class DefaultEntityCache implements EntityCache {
 	public final Entity create(final String entityType) {
 		if (entityType == "explosion") {
 			return entityFactory.createExplosion();
+		} else if (entityType == "smoke") {
+			return entityFactory.createSmoke();
 		} else {
 			throw new IllegalArgumentException("Unknown entity type: " + entityType);
 		}

@@ -18,6 +18,7 @@ import dc.slideracer.collision.system.DamageCollisionResolver;
 import dc.slideracer.epf.graphics.EntityColliderDrawer;
 import dc.slideracer.epf.systems.CollisionSystem;
 import dc.slideracer.epf.systems.ColorChangeSystem;
+import dc.slideracer.epf.systems.EmitSystem;
 import dc.slideracer.epf.systems.RacerInputSystem;
 import dc.slideracer.epf.systems.TimedDeathSystem;
 import dc.slideracer.parts.FragsPart;
@@ -30,6 +31,7 @@ import dclib.epf.EntityAddedListener;
 import dclib.epf.EntityCache;
 import dclib.epf.EntityManager;
 import dclib.epf.EntityRemovedListener;
+import dclib.epf.EntitySpawner;
 import dclib.epf.EntitySystemManager;
 import dclib.epf.graphics.EntityDrawer;
 import dclib.epf.graphics.EntitySpriteDrawer;
@@ -56,6 +58,7 @@ public final class LevelController {
 	private final EntityCache entityCache;
 	private final TerrainFactory terrainFactory;
 	private final EntityManager entityManager = new DefaultEntityManager();
+	private final EntitySpawner entitySpawner;
 	private final EntitySystemManager entitySystemManager = new DefaultEntitySystemManager(entityManager);
 	private final Advancer advancer;
 	private final Camera camera;
@@ -71,6 +74,7 @@ public final class LevelController {
 		ConvexHullCache convexHullCache = new ConvexHullCache(textureCache);
 		entityFactory = new EntityFactory(textureCache, convexHullCache);
 		entityCache = new DefaultEntityCache(entityFactory);
+		entitySpawner = new EntitySpawner(entityCache, entityManager);
 		Rectangle racerBounds = new Rectangle(RACER_START_POSITION.x, RACER_START_POSITION.y, RACER_SIZE.x, 
 				RACER_SIZE.y);
 		terrainFactory = new TerrainFactory(level, entityFactory, racerBounds);
@@ -142,6 +146,7 @@ public final class LevelController {
 		entitySystemManager.add(new TimedDeathSystem(entityManager));
 		entitySystemManager.add(new ColorChangeSystem());
 		entitySystemManager.add(new DrawableSystem(unitConverter));
+		entitySystemManager.add(new EmitSystem(entitySpawner));
 	}
 	
 	private Advancer createAdvancer() {
@@ -165,7 +170,7 @@ public final class LevelController {
 	private void spawnOnDeath(final Entity entity) {
 		if (entity.hasActive(SpawnOnDeathPart.class)) {
 			String entityTypeName = entity.get(SpawnOnDeathPart.class).getEntityType();
-			Entity spawn = spawnEntity(entityTypeName);
+			Entity spawn = entitySpawner.spawn(entityTypeName);
 			TransformPart spawnTransform = spawn.get(TransformPart.class);
 			Vector2 entityCenter = entity.get(TransformPart.class).getCenter();
 			Vector2 position = PolygonUtils.relativeCenter(entityCenter, spawnTransform.getSize());
@@ -205,12 +210,6 @@ public final class LevelController {
 		racer = entityFactory.createRacer(racerSize, racerPosition);
 		entityManager.add(racer);
 		entityManager.addAll(terrainFactory.create());
-	}
-	
-	private Entity spawnEntity(final String entityType) {
-		Entity entity = entityCache.create(entityType);
-		entityManager.add(entity);
-		return entity;
 	}
 	
 	private void updateCamera() {

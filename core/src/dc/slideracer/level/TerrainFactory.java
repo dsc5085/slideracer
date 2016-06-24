@@ -9,7 +9,6 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 import dclib.epf.Entity;
-import dclib.geometry.RectangleUtils;
 import dclib.geometry.VectorUtils;
 import dclib.geometry.VertexUtils;
 import dclib.util.FloatRange;
@@ -19,7 +18,6 @@ public class TerrainFactory {
 
 	private static final FloatRange EDGE_ANGLE_RANGE = new FloatRange(60, 120);
 	
-	private final Level level;
 	private final EntityFactory entityFactory;
 	private final Rectangle racerBounds;
 	private final FloatRange edgeYOffsetRange;
@@ -28,8 +26,7 @@ public class TerrainFactory {
 	// This is so the obstacle looks conjoined with the cliff
 	private final float obstacleBaseDepth;
 
-	public TerrainFactory(final Level level, final EntityFactory entityFactory, final Rectangle racerBounds) {
-		this.level = level;
+	public TerrainFactory(final EntityFactory entityFactory, final Rectangle racerBounds) {
 		this.entityFactory = entityFactory;
 		this.racerBounds = racerBounds;
 		edgeYOffsetRange = new FloatRange(2 * racerBounds.height, 6 * racerBounds.height);
@@ -38,54 +35,60 @@ public class TerrainFactory {
 		obstacleBaseDepth = racerBounds.width;
 	}
 	
-	public final List<Entity> create() {
-		List<Entity> terrain = new ArrayList<Entity>();
-		float outsideEdgeBuffer = racerBounds.width * 10;
-		List<Vector2> leftCliffEdgeVertices = createLeftCliffEdgeVertices();
+	public final TerrainSection create(final Vector2 leftCliffStartVertex, final Vector2 rightCliffStartVertex, 
+			final float height) {
+		final float outsideEdgeBuffer = racerBounds.width * 10;
+		float terrainTop = leftCliffStartVertex.y + height;
+		List<Vector2> leftCliffEdgeVertices = createLeftCliffEdgeVertices(leftCliffStartVertex, terrainTop);
 		float[] leftCliffEdgeVerticesArray = VertexUtils.toVerticesArray(leftCliffEdgeVertices);
 		float leftOutsideEdgeX = VertexUtils.minX(leftCliffEdgeVerticesArray) - outsideEdgeBuffer;
 		List<Vector2> leftCliffVertices = createCliffVertices(leftCliffEdgeVertices, leftOutsideEdgeX);
-		terrain.add(createTerrain(leftCliffVertices));
-		List<Vector2> rightCliffEdgeVertices = createRightCliffEdgeVertices(leftCliffEdgeVertices);
+		Entity leftCliff = createTerrain(leftCliffVertices);
+		List<Vector2> rightCliffEdgeVertices = createRightCliffEdgeVertices(rightCliffStartVertex, 
+				leftCliffEdgeVertices);
 		float[] rightCliffEdgeVerticesArray = VertexUtils.toVerticesArray(rightCliffEdgeVertices);
 		float rightOutsideEdgeX = VertexUtils.maxX(rightCliffEdgeVerticesArray) + outsideEdgeBuffer;
 		List<Vector2> rightCliffVertices = createCliffVertices(rightCliffEdgeVertices, rightOutsideEdgeX);
-		terrain.add(createTerrain(rightCliffVertices));
-		terrain.addAll(createObstacles(leftCliffVertices, rightCliffVertices));
-		return terrain;
+		Entity rightCliff = createTerrain(rightCliffVertices);
+		List<Entity> obstacles = createObstacles(leftCliffVertices, rightCliffVertices, leftCliffStartVertex.y, 
+				terrainTop);
+		return new TerrainSection(leftCliff, rightCliff, obstacles);
 	}
 	
-	private List<Vector2> createLeftCliffEdgeVertices() {
+	private List<Vector2> createLeftCliffEdgeVertices(final Vector2 startVertex, final float terrainTop) {
 		List<Vector2> vertices = new ArrayList<Vector2>();
-		Vector2 startVertex = new Vector2(racerBounds.x - beginPathBufferRange.max() / 2, racerBounds.y);
 		vertices.add(startVertex);
-		float levelTop = racerBounds.y + level.getHeight();
 		while (true) {
 			Vector2 previousVertex = vertices.get(vertices.size() - 1);
 			float vertexOffsetY = edgeYOffsetRange.random();
-			float vertexY = previousVertex.y + vertexOffsetY;
+			float vertexY = Math.min(previousVertex.y + vertexOffsetY, terrainTop);
 			float edgeAngle = EDGE_ANGLE_RANGE.random();
 			float vertexX = previousVertex.x + vertexOffsetY / (float)Math.tan(Math.toRadians(edgeAngle));
 			vertices.add(new Vector2(vertexX, vertexY));
-			if (vertexY >= levelTop) {
+			if (vertexY >= terrainTop) {
 				return vertices;
 			}
 		}
 	}
 	
-	private List<Vector2> createRightCliffEdgeVertices(final List<Vector2> leftVertices) {
+	private List<Vector2> createRightCliffEdgeVertices(final Vector2 startVertex, final List<Vector2> leftVertices) {
 		List<Edge> rightEdges = new ArrayList<Edge>();
 		List<Edge> leftEdges = createEdges(leftVertices);
-		Vector2 startVertex = new Vector2(racerBounds.x + beginPathBufferRange.max() / 2, racerBounds.y);
+		Vector2 edgeStartVertex = startVertex.cpy();
 		for (Edge leftEdge : leftEdges) {
-			float rightEdgeOffsetY = MathUtils.random(edgeYOffsetRange.min()) * MathUtils.randomSign();
-			float rightEdgeEndY = Math.max(leftEdge.getP2().y + rightEdgeOffsetY, startVertex.y);
-			float rightEdgeAngle = getRightEdgeAngle(startVertex, leftEdge, rightEdgeEndY);
-			float rightEdgeEndX = startVertex.x + (rightEdgeEndY - startVertex.y) / (float)Math.tan(rightEdgeAngle);
+			float rightEdgeEndY;
+			if (leftEdges.indexOf(leftEdge) == leftEdges.size() - 1) {
+				rightEdgeEndY = leftEdge.getEnd().y;
+			} else {
+				float rightEdgeOffsetY = MathUtils.random(edgeYOffsetRange.min()) * MathUtils.randomSign();
+				rightEdgeEndY = Math.max(leftEdge.getEnd().y + rightEdgeOffsetY, edgeStartVertex.y);
+			}
+			float rightEdgeAngle = getRightEdgeAngle(edgeStartVertex, leftEdge, rightEdgeEndY);
+			float rightEdgeEndX = edgeStartVertex.x + (rightEdgeEndY - edgeStartVertex.y) / (float)Math.tan(rightEdgeAngle);
 			Vector2 endVertex = new Vector2(rightEdgeEndX, rightEdgeEndY);
-			Edge rightEdge = new Edge(startVertex, endVertex);
+			Edge rightEdge = new Edge(edgeStartVertex, endVertex);
 			rightEdges.add(rightEdge);
-			startVertex = rightEdge.getP2();
+			edgeStartVertex = rightEdge.getEnd();
 		}
 		return getVertices(rightEdges);
 	}
@@ -94,10 +97,10 @@ public class TerrainFactory {
 		final float angleMaxDiff = 10;
 		FloatRange pathBufferRange = getPathBufferRange(rightEdgeEndY);
 		float leftEdgeAngle = leftEdge.getAngle();
-		float minXForPathBuffer = leftEdge.getP2().x + racerBounds.width + pathBufferRange.min();
+		float minXForPathBuffer = leftEdge.getEnd().x + racerBounds.width + pathBufferRange.min();
 		float minAngleForPathBuffer = new Vector2(minXForPathBuffer, rightEdgeEndY).sub(startVertex).angle();
 		float minRightEdgeAngle = Math.min(minAngleForPathBuffer, leftEdgeAngle - angleMaxDiff);
-		float maxXForPathBuffer = leftEdge.getP2().x + racerBounds.width + pathBufferRange.max();
+		float maxXForPathBuffer = leftEdge.getEnd().x + racerBounds.width + pathBufferRange.max();
 		float maxAngleForPathBuffer = new Vector2(maxXForPathBuffer, rightEdgeEndY).sub(startVertex).angle();
 		float maxRightEdgeAngle = Math.max(maxAngleForPathBuffer, leftEdgeAngle + angleMaxDiff);
 		float rightEdgeAngle = MathUtils.random(minRightEdgeAngle, maxRightEdgeAngle);
@@ -106,7 +109,8 @@ public class TerrainFactory {
 	}
 
 	private FloatRange getPathBufferRange(final float vertexY) {
-		float progressRatio = (vertexY - racerBounds.y) / level.getHeight();
+		final float maxDifficultyHeight = racerBounds.height * 500;
+		float progressRatio = (vertexY - racerBounds.y) / maxDifficultyHeight;
 		float minPathBuffer = Interpolation.linear.apply(beginPathBufferRange.min(), endPathBufferRange.min(), 
 				progressRatio);
 		float maxPathBuffer = Interpolation.linear.apply(beginPathBufferRange.max(), endPathBufferRange.max(), 
@@ -125,16 +129,15 @@ public class TerrainFactory {
 	}
 	
 	private List<Entity> createObstacles(final List<Vector2> leftCliffVertices, 
-			final List<Vector2> rightCliffVertices) {
+			final List<Vector2> rightCliffVertices, final float terrainBottom, final float terrainTop) {
 		final float obstacleHeight = racerBounds.height * 1.5f;
 		final FloatRange yOffsetRange = new FloatRange(5 * racerBounds.height, 10 * racerBounds.height);
 		List<Entity> obstacles = new ArrayList<Entity>();
-		float levelTop = racerBounds.y + level.getHeight();
-		float obstacleY = RectangleUtils.top(racerBounds);
+		float obstacleY = terrainBottom + racerBounds.height;
 		while (true) {
 			obstacleY += yOffsetRange.random();
 			FloatRange obstacleYRange = new FloatRange(obstacleY, obstacleY + obstacleHeight);
-			if (obstacleYRange.max() >= levelTop) {
+			if (obstacleYRange.max() >= terrainTop) {
 				return obstacles;
 			}
 			List<Entity> newObstacles = createObstaclePair(leftCliffVertices, rightCliffVertices, obstacleYRange);
@@ -204,8 +207,8 @@ public class TerrainFactory {
 	private List<Vector2> getVertices(final List<Edge> edges) {
 		List<Vector2> vertices = new ArrayList<Vector2>();
 		for (Edge edge : edges) {
-			vertices.add(edge.getP1());
-			vertices.add(edge.getP2());
+			vertices.add(edge.getStart());
+			vertices.add(edge.getEnd());
 		}
 		return vertices;
 	}
@@ -220,24 +223,24 @@ public class TerrainFactory {
 	
 	private class Edge {
 		
-		private final Vector2 p1;
-		private final Vector2 p2;
+		private final Vector2 start;
+		private final Vector2 end;
 		
-		public Edge(final Vector2 p1, final Vector2 p2) {
-			this.p1 = p1;
-			this.p2 = p2;
+		public Edge(final Vector2 start, final Vector2 end) {
+			this.start = start;
+			this.end = end;
 		}
 		
-		public final Vector2 getP1() {
-			return p1.cpy();
+		public final Vector2 getStart() {
+			return start.cpy();
 		}
 		
-		public final Vector2 getP2() {
-			return p2.cpy();
+		public final Vector2 getEnd() {
+			return end.cpy();
 		}
 		
 		public final float getAngle() {
-			return getP2().sub(p1).angle();
+			return getEnd().sub(start).angle();
 		}
 		
 	}

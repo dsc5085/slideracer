@@ -5,7 +5,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
-import dc.slideracer.level.Level;
 import dc.slideracer.screens.LevelScreen;
 import dclib.graphics.TextureCache;
 import dclib.system.ScreenManager;
@@ -23,8 +22,7 @@ public class SlideRacerGame extends ApplicationAdapter {
 		textureCache = createTextureCache();
 		spriteBatch = new PolygonSpriteBatch();
 		shapeRenderer = new ShapeRenderer();
-		Level level = new Level(100);
-		screenManager.add(new LevelScreen(level, textureCache, spriteBatch, shapeRenderer));
+		screenManager.add(new LevelScreen(textureCache, spriteBatch, shapeRenderer));
 	}
 
 	@Override

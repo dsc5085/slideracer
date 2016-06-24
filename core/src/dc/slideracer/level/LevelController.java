@@ -1,5 +1,6 @@
 package dc.slideracer.level;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.graphics.Camera;
@@ -42,15 +43,19 @@ import dclib.epf.systems.DrawableSystem;
 import dclib.epf.systems.TranslateSystem;
 import dclib.eventing.DefaultListener;
 import dclib.geometry.PolygonUtils;
+import dclib.geometry.RectangleUtils;
 import dclib.geometry.UnitConverter;
 import dclib.graphics.CameraUtils;
 import dclib.graphics.ConvexHullCache;
 import dclib.graphics.TextureCache;
 import dclib.system.Advancer;
+import dclib.util.Maths;
 
 public final class LevelController {
 
 	private static final int PIXELS_PER_UNIT = 32;
+	private static final Vector2 VIEWPORT_SIZE = new Vector2(10 * PIXELS_PER_UNIT, 7.5f * PIXELS_PER_UNIT);
+	private static final float TERRAIN_SECTION_HEIGHT = 10 * VIEWPORT_SIZE.y / PIXELS_PER_UNIT;
 	private static final Vector3 RACER_START_POSITION = new Vector3(0, 0, 1);
 	private static final Vector2 RACER_SIZE = new Vector2(1, 1);
 	
@@ -67,9 +72,10 @@ public final class LevelController {
 	private final EntityDrawer entityTransformDrawer;
 	private final EntityDrawer entityColliderDrawer;
 	private CollisionManager collisionManager;
+	private final List<TerrainSection> terrainSections = new ArrayList<TerrainSection>();
 	private Entity racer;
 
-	public LevelController(final Level level, final TextureCache textureCache, final PolygonSpriteBatch spriteBatch, 
+	public LevelController(final TextureCache textureCache, final PolygonSpriteBatch spriteBatch, 
 			final ShapeRenderer shapeRenderer) {
 		ConvexHullCache convexHullCache = new ConvexHullCache(textureCache);
 		entityFactory = new EntityFactory(textureCache, convexHullCache);
@@ -77,7 +83,7 @@ public final class LevelController {
 		entitySpawner = new EntitySpawner(entityCache, entityManager);
 		Rectangle racerBounds = new Rectangle(RACER_START_POSITION.x, RACER_START_POSITION.y, RACER_SIZE.x, 
 				RACER_SIZE.y);
-		terrainFactory = new TerrainFactory(level, entityFactory, racerBounds);
+		terrainFactory = new TerrainFactory(entityFactory, racerBounds);
 		entityManager.addEntityAddedListener(entityAdded());
 		entityManager.addEntityRemovedListener(entityRemoved());
 		advancer = createAdvancer();
@@ -96,8 +102,9 @@ public final class LevelController {
 
 	public final void update(final float delta) {
 		advancer.advance(delta);
+		updateTerrain();
 	}
-	
+
 	public final void draw() {
 		List<Entity> entities = entityManager.getAll();
 		entitySpriteDrawer.draw(entities);
@@ -162,8 +169,8 @@ public final class LevelController {
 	
 	private Camera createCamera() {
 		Camera camera = new OrthographicCamera();
-		camera.viewportWidth = 10 * PIXELS_PER_UNIT;
-		camera.viewportHeight = 7.5f * PIXELS_PER_UNIT;
+		camera.viewportWidth = VIEWPORT_SIZE.x;
+		camera.viewportHeight = VIEWPORT_SIZE.y;
 		return camera;
 	}
 	
@@ -207,9 +214,14 @@ public final class LevelController {
 	}
 
 	private void spawnInitialEntities(final Vector3 racerPosition, final Vector2 racerSize) {
+		// TODO: More precise start vertex x
+		Vector2 leftCliffStartVertex = new Vector2(racerPosition.x - 2, racerPosition.y);
+		Vector2 rightCliffStartVertex = new Vector2(racerPosition.x + 2, racerPosition.y);
+		TerrainSection terrainSection = terrainFactory.create(leftCliffStartVertex, rightCliffStartVertex, 
+				TERRAIN_SECTION_HEIGHT);
+		add(terrainSection);
 		racer = entityFactory.createRacer(racerSize, racerPosition);
 		entityManager.add(racer);
-		entityManager.addAll(terrainFactory.create());
 	}
 	
 	private void updateCamera() {
@@ -220,6 +232,29 @@ public final class LevelController {
 		Rectangle newViewport = new Rectangle(newCameraX, newCameraY, worldViewportSize.x, worldViewportSize.y);
 		CameraUtils.setViewport(camera, newViewport, PIXELS_PER_UNIT);
 		camera.update();
+	}
+	
+	private void updateTerrain() {
+		TerrainSection topTerrainSection = terrainSections.get(terrainSections.size() - 1);
+		Rectangle viewport = CameraUtils.getViewport(camera, unitConverter.getPixelsPerUnit());
+		if (Maths.distance(topTerrainSection.getTop(), RectangleUtils.top(viewport)) < TERRAIN_SECTION_HEIGHT) {
+			for (TerrainSection terrainSection : new ArrayList<TerrainSection>(terrainSections)) {
+				if (terrainSection.getTop() < viewport.y){
+					entityManager.removeAll(terrainSection.getAll());
+					terrainSections.remove(terrainSection);
+				}
+			}
+			Vector2 leftCliffStartVertex = topTerrainSection.getLeftCliffTopVertex();
+			Vector2 rightCliffStartVertex = topTerrainSection.getRightCliffTopVertex();
+			TerrainSection newTerrainSection = terrainFactory.create(leftCliffStartVertex, rightCliffStartVertex, 
+					TERRAIN_SECTION_HEIGHT);
+			add(newTerrainSection);
+		}
+	}
+	
+	private void add(final TerrainSection terrainSection) {
+		terrainSections.add(terrainSection);
+		entityManager.addAll(terrainSection.getAll());
 	}
 	
 }

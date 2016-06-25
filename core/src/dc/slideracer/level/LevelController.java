@@ -59,6 +59,7 @@ public final class LevelController {
 	private static final Vector3 RACER_START_POSITION = new Vector3(0, 0, 1);
 	private static final Vector2 RACER_SIZE = new Vector2(1, 1);
 	
+	private final int score = 0;
 	private final EntityFactory entityFactory;
 	private final EntityCache entityCache;
 	private final TerrainFactory terrainFactory;
@@ -94,6 +95,10 @@ public final class LevelController {
 		entityColliderDrawer = new EntityColliderDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
 		addSystems();
 		setupLevel();
+	}
+	
+	public final int getScore() {
+		return score;
 	}
 
 	public final void dispose() {

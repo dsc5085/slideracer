@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -59,7 +60,7 @@ public final class LevelController {
 	private static final Vector3 RACER_START_POSITION = new Vector3(0, 0, 1);
 	private static final Vector2 RACER_SIZE = new Vector2(1, 1);
 	
-	private final int score = 0;
+	private float score = 0;
 	private final EntityFactory entityFactory;
 	private final EntityCache entityCache;
 	private final TerrainFactory terrainFactory;
@@ -75,6 +76,7 @@ public final class LevelController {
 	private CollisionManager collisionManager;
 	private final List<TerrainSection> terrainSections = new ArrayList<TerrainSection>();
 	private Entity racer;
+	private float oldRacerY;
 
 	public LevelController(final TextureCache textureCache, final PolygonSpriteBatch spriteBatch, 
 			final ShapeRenderer shapeRenderer) {
@@ -98,7 +100,7 @@ public final class LevelController {
 	}
 	
 	public final int getScore() {
-		return score;
+		return MathUtils.floor(score);
 	}
 
 	public final void dispose() {
@@ -165,9 +167,11 @@ public final class LevelController {
 		return new Advancer() {
 			@Override
 			protected void update(final float delta) {
+				oldRacerY = racer.get(TransformPart.class).getPosition().y;
 				entitySystemManager.update(delta);
 				collisionManager.checkCollisions(entityManager.getAll());
 				updateCamera();
+				updateScore();
 			}
 		};
 	}
@@ -255,6 +259,10 @@ public final class LevelController {
 					TERRAIN_SECTION_HEIGHT);
 			add(newTerrainSection);
 		}
+	}
+
+	private void updateScore() {
+		score += racer.get(TransformPart.class).getPosition().y - oldRacerY;
 	}
 	
 	private void add(final TerrainSection terrainSection) {

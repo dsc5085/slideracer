@@ -80,18 +80,18 @@ public final class LevelController {
 
 	public LevelController(final TextureCache textureCache, final PolygonSpriteBatch spriteBatch, 
 			final ShapeRenderer shapeRenderer) {
-		ConvexHullCache convexHullCache = new ConvexHullCache(textureCache);
-		entityFactory = new EntityFactory(textureCache, convexHullCache);
-		entityCache = new DefaultEntityCache(entityFactory);
-		entitySpawner = new EntitySpawner(entityCache, entityManager);
-		Rectangle racerBounds = new Rectangle(RACER_START_POSITION.x, RACER_START_POSITION.y, RACER_SIZE.x, 
-				RACER_SIZE.y);
-		terrainFactory = new TerrainFactory(entityFactory, racerBounds);
 		entityManager.addEntityAddedListener(entityAdded());
 		entityManager.addEntityRemovedListener(entityRemoved());
 		advancer = createAdvancer();
 		camera = createCamera();
 		unitConverter = new UnitConverter(PIXELS_PER_UNIT, camera);
+		ConvexHullCache convexHullCache = new ConvexHullCache(textureCache);
+		Rectangle racerBounds = new Rectangle(RACER_START_POSITION.x, RACER_START_POSITION.y, RACER_SIZE.x, 
+				RACER_SIZE.y);
+		entityFactory = new EntityFactory(unitConverter, textureCache, convexHullCache);
+		terrainFactory = new TerrainFactory(entityFactory, racerBounds);
+		entityCache = new DefaultEntityCache(entityFactory);
+		entitySpawner = new EntitySpawner(entityCache, entityManager);
 		entitySpriteDrawer = new EntitySpriteDrawer(spriteBatch, camera);
 		entityTransformDrawer = new EntityTransformDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
 		entityColliderDrawer = new EntityColliderDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);

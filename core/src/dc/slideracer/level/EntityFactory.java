@@ -22,6 +22,7 @@ import dclib.epf.Entity;
 import dclib.epf.parts.DrawablePart;
 import dclib.epf.parts.TransformPart;
 import dclib.epf.parts.TranslatePart;
+import dclib.geometry.UnitConverter;
 import dclib.geometry.VertexUtils;
 import dclib.graphics.ConvexHullCache;
 import dclib.graphics.RegionFactory;
@@ -31,11 +32,14 @@ import dclib.util.Timer;
 public final class EntityFactory {
 	
 	private static final float RACER_VELOCITY_Y = 3;
-	
+
+	private final UnitConverter unitConverter;
 	private final TextureCache textureCache;
 	private final ConvexHullCache convexHullCache;
 	
-	public EntityFactory(final TextureCache textureCache, final ConvexHullCache convexHullCache) {
+	public EntityFactory(final UnitConverter unitConverter, final TextureCache textureCache, 
+			final ConvexHullCache convexHullCache) {
+		this.unitConverter = unitConverter;
 		this.textureCache = textureCache;
 		this.convexHullCache = convexHullCache;
 	}
@@ -85,7 +89,7 @@ public final class EntityFactory {
 	public final Entity createTerrain(final float[] vertices) {
 		PolygonRegion region = textureCache.getPolygonRegion("bgs/rock");
 		Polygon polygon = VertexUtils.toPolygon(vertices);
-		float[] regionVertices = VertexUtils.scaleVertices(vertices, 32, 32);
+		float[] regionVertices = VertexUtils.scaleVertices(vertices, unitConverter.getPixelsPerUnit());
 		region = RegionFactory.createPolygonRegion(region.getRegion(), regionVertices);
 		Entity entity = createBaseEntity(polygon, 0, region);
 		entity.attach(new CollisionPart(CollisionType.HAZARD, polygon.getVertices()));

@@ -45,6 +45,11 @@ public final class EntityFactory {
 	}
 	
 	public final Entity createRacer(final Vector2 size, final Vector3 position) {
+//		float[] vertices = PolygonFactory.createRectangleVertices(size.x, size.y);
+//		Polygon polygon = VertexUtils.toPolygon(vertices);
+//		PolygonRegion region = textureCache.getPolygonRegion("bgs/rock");
+//		float[] regionVert = PolygonFactory.createRectangleVertices(2, 2, 8, 8);
+//		region = RegionFactory.createPolygonRegion(region.getRegion(), regionVert);
 		PolygonRegion region = textureCache.getPolygonRegion("objects/tank");
 		Polygon polygon = convexHullCache.create("objects/tank", size);
 		polygon.setPosition(position.x, position.y);

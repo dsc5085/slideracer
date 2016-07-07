@@ -33,7 +33,7 @@ public final class EntityColliderDrawer implements EntityDrawer {
 				CollisionPart collisionPart = entity.get(CollisionPart.class);
 				for (Polygon collisionPolygon : collisionPart.getPolygons()) {
 					float[] transformedVertices = collisionPolygon.getTransformedVertices();
-					float[] vertices = VertexUtils.scaleVertices(transformedVertices, pixelsPerUnit);
+					float[] vertices = VertexUtils.scale(transformedVertices, pixelsPerUnit);
 					shapeRenderer.polygon(vertices);
 				}
 			}

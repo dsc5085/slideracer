@@ -40,13 +40,13 @@ public class TerrainFactory {
 		final float outsideEdgeBuffer = racerBounds.width * 10;
 		float terrainTop = leftCliffStartVertex.y + height;
 		List<Vector2> leftCliffEdgeVertices = createLeftCliffEdgeVertices(leftCliffStartVertex, terrainTop);
-		float[] leftCliffEdgeVerticesArray = VertexUtils.toVerticesArray(leftCliffEdgeVertices);
+		float[] leftCliffEdgeVerticesArray = VertexUtils.toArray(leftCliffEdgeVertices);
 		float leftOutsideEdgeX = VertexUtils.minX(leftCliffEdgeVerticesArray) - outsideEdgeBuffer;
 		List<Vector2> leftCliffVertices = createCliffVertices(leftCliffEdgeVertices, leftOutsideEdgeX);
 		Entity leftCliff = createTerrain(leftCliffVertices);
 		List<Vector2> rightCliffEdgeVertices = createRightCliffEdgeVertices(rightCliffStartVertex, 
 				leftCliffEdgeVertices);
-		float[] rightCliffEdgeVerticesArray = VertexUtils.toVerticesArray(rightCliffEdgeVertices);
+		float[] rightCliffEdgeVerticesArray = VertexUtils.toArray(rightCliffEdgeVertices);
 		float rightOutsideEdgeX = VertexUtils.maxX(rightCliffEdgeVerticesArray) + outsideEdgeBuffer;
 		List<Vector2> rightCliffVertices = createCliffVertices(rightCliffEdgeVertices, rightOutsideEdgeX);
 		Entity rightCliff = createTerrain(rightCliffVertices);
@@ -200,7 +200,7 @@ public class TerrainFactory {
 	}
 	
 	private Entity createTerrain(final List<Vector2> vertices) {
-		float[] verticesArray = VertexUtils.toVerticesArray(vertices);
+		float[] verticesArray = VertexUtils.toArray(vertices);
 		return entityFactory.createTerrain(verticesArray);
 	}
 	

@@ -45,11 +45,6 @@ public final class EntityFactory {
 	}
 	
 	public final Entity createRacer(final Vector2 size, final Vector3 position) {
-//		float[] vertices = PolygonFactory.createRectangleVertices(size.x, size.y);
-//		Polygon polygon = VertexUtils.toPolygon(vertices);
-//		PolygonRegion region = textureCache.getPolygonRegion("bgs/rock");
-//		float[] regionVert = PolygonFactory.createRectangleVertices(2, 2, 8, 8);
-//		region = RegionFactory.createPolygonRegion(region.getRegion(), regionVert);
 		PolygonRegion region = textureCache.getPolygonRegion("objects/tank");
 		Polygon polygon = convexHullCache.create("objects/tank", size);
 		polygon.setPosition(position.x, position.y);
@@ -92,9 +87,9 @@ public final class EntityFactory {
 	}
 	
 	public final Entity createTerrain(final float[] vertices) {
-		PolygonRegion region = textureCache.getPolygonRegion("bgs/rock");
 		Polygon polygon = VertexUtils.toPolygon(vertices);
-		float[] regionVertices = VertexUtils.scaleVertices(vertices, unitConverter.getPixelsPerUnit());
+		PolygonRegion region = textureCache.getPolygonRegion("bgs/rock");
+		float[] regionVertices = VertexUtils.scale(vertices, unitConverter.getPixelsPerUnit());
 		region = RegionFactory.createPolygonRegion(region.getRegion(), regionVertices);
 		Entity entity = createBaseEntity(polygon, 0, region);
 		entity.attach(new CollisionPart(CollisionType.HAZARD, polygon.getVertices()));

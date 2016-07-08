@@ -3,6 +3,7 @@ package dc.slideracer.level;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.math.Polygon;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
@@ -22,10 +23,10 @@ import dclib.epf.Entity;
 import dclib.epf.parts.DrawablePart;
 import dclib.epf.parts.TransformPart;
 import dclib.epf.parts.TranslatePart;
+import dclib.geometry.PolygonFactory;
 import dclib.geometry.UnitConverter;
 import dclib.geometry.VertexUtils;
 import dclib.graphics.ConvexHullCache;
-import dclib.graphics.RegionFactory;
 import dclib.graphics.TextureCache;
 import dclib.util.Timer;
 
@@ -86,11 +87,21 @@ public final class EntityFactory {
 		return entity;
 	}
 	
+	public final Entity createBackground(final Rectangle bounds) {
+		final float backgroundScale = 8;
+		float[] vertices = PolygonFactory.createRectangleVertices(bounds);
+		Polygon polygon = VertexUtils.toPolygon(vertices);
+		float[] regionVertices = VertexUtils.scale(vertices, backgroundScale * unitConverter.getPixelsPerUnit());
+		PolygonRegion region = textureCache.getPolygonRegion("bgs/rock", regionVertices);
+		Entity entity = createBaseEntity(polygon, -1, region);
+		entity.get(DrawablePart.class).getSprite().setColor(Color.GRAY.cpy());
+		return entity;
+	}
+	
 	public final Entity createTerrain(final float[] vertices) {
 		Polygon polygon = VertexUtils.toPolygon(vertices);
-		PolygonRegion region = textureCache.getPolygonRegion("bgs/rock");
 		float[] regionVertices = VertexUtils.scale(vertices, unitConverter.getPixelsPerUnit());
-		region = RegionFactory.createPolygonRegion(region.getRegion(), regionVertices);
+		PolygonRegion region = textureCache.getPolygonRegion("bgs/rock", regionVertices);
 		Entity entity = createBaseEntity(polygon, 0, region);
 		entity.attach(new CollisionPart(CollisionType.HAZARD, polygon.getVertices()));
 		entity.attach(new DamageOnCollisionPart(100));

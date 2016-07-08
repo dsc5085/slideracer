@@ -14,11 +14,14 @@ public final class TerrainSection {
 
 	private final Entity leftCliff;
 	private final Entity rightCliff;
+	private final Entity background;
 	private final List<Entity> obstacles;
 
-	public TerrainSection(final Entity leftCliff, final Entity rightCliff, final List<Entity> obstacles) {
+	public TerrainSection(final Entity leftCliff, final Entity rightCliff, final Entity background, 
+			final List<Entity> obstacles) {
 		this.leftCliff = leftCliff;
 		this.rightCliff = rightCliff;
+		this.background = background;
 		this.obstacles = obstacles;
 	}
 	
@@ -26,6 +29,7 @@ public final class TerrainSection {
 		List<Entity> terrainPieces = new ArrayList<Entity>(obstacles);
 		terrainPieces.add(leftCliff);
 		terrainPieces.add(rightCliff);
+		terrainPieces.add(background);
 		return terrainPieces;
 	}
 	

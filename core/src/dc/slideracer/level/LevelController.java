@@ -70,9 +70,7 @@ public final class LevelController {
 	private final Advancer advancer;
 	private final Camera camera;
 	private final UnitConverter unitConverter;
-	private final EntityDrawer entitySpriteDrawer;
-	private final EntityDrawer entityTransformDrawer;
-	private final EntityDrawer entityColliderDrawer;
+	private final List<EntityDrawer> entityDrawers = new ArrayList<EntityDrawer>();
 	private CollisionManager collisionManager;
 	private final List<TerrainSection> terrainSections = new ArrayList<TerrainSection>();
 	private Entity racer;
@@ -92,9 +90,9 @@ public final class LevelController {
 		terrainFactory = new TerrainFactory(entityFactory, racerBounds);
 		entityCache = new DefaultEntityCache(entityFactory);
 		entitySpawner = new EntitySpawner(entityCache, entityManager);
-		entitySpriteDrawer = new EntitySpriteDrawer(spriteBatch, camera);
-		entityTransformDrawer = new EntityTransformDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
-		entityColliderDrawer = new EntityColliderDrawer(shapeRenderer, camera, PIXELS_PER_UNIT);
+		entityDrawers.add(new EntitySpriteDrawer(spriteBatch, camera));
+		entityDrawers.add(new EntityTransformDrawer(shapeRenderer, camera, PIXELS_PER_UNIT));
+		entityDrawers.add(new EntityColliderDrawer(shapeRenderer, camera, PIXELS_PER_UNIT));
 		addSystems();
 		setupLevel();
 	}
@@ -114,9 +112,9 @@ public final class LevelController {
 
 	public final void draw() {
 		List<Entity> entities = entityManager.getAll();
-		entitySpriteDrawer.draw(entities);
-		entityTransformDrawer.draw(entities);
-		entityColliderDrawer.draw(entities);
+		for (EntityDrawer entityDrawer : entityDrawers) {
+			entityDrawer.draw(entities);
+		}
 	}
 
 	private EntityAddedListener entityAdded() {

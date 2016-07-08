@@ -38,8 +38,9 @@ public class TerrainFactory {
 	public final TerrainSection create(final Vector2 leftCliffStartVertex, final Vector2 rightCliffStartVertex, 
 			final float height) {
 		final float outsideEdgeBuffer = racerBounds.width * 10;
-		float terrainTop = leftCliffStartVertex.y + height;
-		List<Vector2> leftCliffEdgeVertices = createLeftCliffEdgeVertices(leftCliffStartVertex, terrainTop);
+		float bottom = leftCliffStartVertex.y;
+		float top = bottom + height;
+		List<Vector2> leftCliffEdgeVertices = createLeftCliffEdgeVertices(leftCliffStartVertex, top);
 		float[] leftCliffEdgeVerticesArray = VertexUtils.toArray(leftCliffEdgeVertices);
 		float leftOutsideEdgeX = VertexUtils.minX(leftCliffEdgeVerticesArray) - outsideEdgeBuffer;
 		List<Vector2> leftCliffVertices = createCliffVertices(leftCliffEdgeVertices, leftOutsideEdgeX);
@@ -50,9 +51,11 @@ public class TerrainFactory {
 		float rightOutsideEdgeX = VertexUtils.maxX(rightCliffEdgeVerticesArray) + outsideEdgeBuffer;
 		List<Vector2> rightCliffVertices = createCliffVertices(rightCliffEdgeVertices, rightOutsideEdgeX);
 		Entity rightCliff = createTerrain(rightCliffVertices);
-		List<Entity> obstacles = createObstacles(leftCliffVertices, rightCliffVertices, leftCliffStartVertex.y, 
-				terrainTop);
-		return new TerrainSection(leftCliff, rightCliff, obstacles);
+		List<Entity> obstacles = createObstacles(leftCliffVertices, rightCliffVertices, leftCliffStartVertex.y, top);
+		float backgroundWidth = rightOutsideEdgeX - leftOutsideEdgeX;
+		Rectangle backgroundBounds = new Rectangle(leftOutsideEdgeX, bottom, backgroundWidth, height);
+		Entity background = entityFactory.createBackground(backgroundBounds);
+		return new TerrainSection(leftCliff, rightCliff, background, obstacles);
 	}
 	
 	private List<Vector2> createLeftCliffEdgeVertices(final Vector2 startVertex, final float terrainTop) {

@@ -1,6 +1,8 @@
 package dc.slideracer.level;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.badlogic.gdx.math.Interpolation;
@@ -157,31 +159,58 @@ public class TerrainFactory {
 		float maxGapX = pathRangeBottom.max() - gapWidth;
 		float gapX = MathUtils.random(pathRangeBottom.min(), maxGapX);
 		FloatRange pathRange = getPathRange(obstacleYRange.min(), leftCliffVertices, rightCliffVertices); 
-		obstacles.add(createLeftObstacle(obstacleYRange, gapX, pathRange));
-		obstacles.add(createRightObstacle(obstacleYRange, gapWidth, gapX, pathRange));
+		Entity leftObstacle = createObstacle(obstacleYRange, gapX, pathRange.min() - obstacleBaseDepth);
+		obstacles.add(leftObstacle);
+		Entity rightObstacle = createObstacle(obstacleYRange, gapX + gapWidth, pathRange.max() + obstacleBaseDepth);
+		obstacles.add(rightObstacle);
 		return obstacles;
 	}
-
-	private Entity createLeftObstacle(final FloatRange obstacleYRange, final float gapX, final FloatRange pathRange) {
-		float leftObstacleX = pathRange.min() - obstacleBaseDepth;
-		float[] leftObstacleVertices = new float[] { 
-			leftObstacleX, obstacleYRange.min(), 
-			gapX, obstacleYRange.random(), 
-			leftObstacleX, obstacleYRange.max()
-		};
-		return entityFactory.createTerrain(leftObstacleVertices);
+	
+	private Entity createObstacle(final FloatRange obstacleYRange, final float obstacleInnerX, 
+			final float obstacleOuterX) {
+		List<Vector2> intermediateVertices = createIntermediateVerticesWithSetY(obstacleYRange);
+		setObstacleVerticesX(obstacleInnerX, obstacleOuterX, intermediateVertices);
+		List<Vector2> vertices = new ArrayList<Vector2>();
+		vertices.add(new Vector2(obstacleOuterX, obstacleYRange.min()));
+		vertices.addAll(intermediateVertices);
+		vertices.add(new Vector2(obstacleOuterX, obstacleYRange.max()));
+		return entityFactory.createTerrain(VertexUtils.toArray(vertices));
 	}
 
-	private Entity createRightObstacle(final FloatRange obstacleYRange, final float gapWidth, final float gapX, 
-			final FloatRange pathRange) {
-		float rightObstacleX = gapX + gapWidth;
-		float rightObstacleEndX = pathRange.max() + obstacleBaseDepth;
-		float[] rightObstacleVertices = new float[] { 
-			rightObstacleEndX, obstacleYRange.min(), 
-			rightObstacleX, obstacleYRange.random(), 
-			rightObstacleEndX, obstacleYRange.max()
-		};
-		return entityFactory.createTerrain(rightObstacleVertices);
+	private List<Vector2> createIntermediateVerticesWithSetY(
+			final FloatRange obstacleYRange) {
+		final float numIntermediateVertices = MathUtils.random(1, 5);
+		List<Vector2> intermediateVertices = new ArrayList<Vector2>();
+		for (int i = 0; i < numIntermediateVertices; i++) {
+			intermediateVertices.add(new Vector2(0, obstacleYRange.random()));
+		}
+		Collections.sort(intermediateVertices, new Comparator<Vector2>() {
+			@Override
+			public final int compare(final Vector2 v1, final Vector2 v2) {
+				return Float.compare(v1.y, v2.y);
+			}
+		});
+		return intermediateVertices;
+	}
+
+	private void setObstacleVerticesX(final float obstacleInnerX,
+			final float obstacleOuterX, final List<Vector2> intermediateVertices) {
+		final float sculptOuterXRatio = 0.5f; 
+		int middleVertexIndex = MathUtils.floor(intermediateVertices.size() / 2f);
+		float sculptOuterX = Interpolation.linear.apply(obstacleInnerX, obstacleOuterX, sculptOuterXRatio);
+		intermediateVertices.get(middleVertexIndex).x = obstacleInnerX;
+		for (int i = 1; i <= middleVertexIndex; i++) {
+			int upperVertexIndex = middleVertexIndex + i;
+			if (upperVertexIndex < intermediateVertices.size()) {
+				float lastVertexX = intermediateVertices.get(upperVertexIndex - 1).x;
+				intermediateVertices.get(upperVertexIndex).x = MathUtils.random(lastVertexX, sculptOuterX);
+			}
+			int lowerVertexIndex = middleVertexIndex - i;
+			if (lowerVertexIndex >= 0) {
+				float lastVertexX = intermediateVertices.get(lowerVertexIndex + 1).x;
+				intermediateVertices.get(lowerVertexIndex).x = MathUtils.random(lastVertexX, sculptOuterX);
+			}
+		}
 	}
 	
 	private FloatRange getPathRange(final float y, final List<Vector2> leftCliffVertices, 

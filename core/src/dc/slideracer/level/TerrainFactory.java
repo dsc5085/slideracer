@@ -22,6 +22,7 @@ public class TerrainFactory {
 	
 	private final EntityFactory entityFactory;
 	private final Rectangle racerBounds;
+	private final float startY;
 	private final FloatRange edgeYOffsetRange;
 	private final FloatRange beginPathBufferRange;
 	private final FloatRange endPathBufferRange;
@@ -31,6 +32,7 @@ public class TerrainFactory {
 	public TerrainFactory(final EntityFactory entityFactory, final Rectangle racerBounds) {
 		this.entityFactory = entityFactory;
 		this.racerBounds = racerBounds;
+		this.startY = racerBounds.y;
 		edgeYOffsetRange = new FloatRange(2 * racerBounds.height, 6 * racerBounds.height);
 		beginPathBufferRange = new FloatRange(6 * racerBounds.width, 8 * racerBounds.width);
 		endPathBufferRange =  new FloatRange(3 * racerBounds.width, 4 * racerBounds.width);
@@ -114,8 +116,7 @@ public class TerrainFactory {
 	}
 
 	private FloatRange getPathBufferRange(final float vertexY) {
-		final float maxDifficultyHeight = racerBounds.height * 500;
-		float progressRatio = (vertexY - racerBounds.y) / maxDifficultyHeight;
+		float progressRatio = LevelUtils.getProgressRatio(racerBounds.y, startY);
 		float minPathBuffer = Interpolation.linear.apply(beginPathBufferRange.min(), endPathBufferRange.min(), 
 				progressRatio);
 		float maxPathBuffer = Interpolation.linear.apply(beginPathBufferRange.max(), endPathBufferRange.max(), 

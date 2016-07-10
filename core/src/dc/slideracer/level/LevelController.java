@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
@@ -50,6 +51,7 @@ import dclib.graphics.CameraUtils;
 import dclib.graphics.ConvexHullCache;
 import dclib.graphics.TextureCache;
 import dclib.system.Advancer;
+import dclib.util.FloatRange;
 import dclib.util.Maths;
 
 public final class LevelController {
@@ -267,7 +269,13 @@ public final class LevelController {
 	}
 
 	private void updateScore() {
-		score += racer.get(TransformPart.class).getPosition().y - oldRacerY;
+		final FloatRange progressScoreMultiplier = new FloatRange(1, 5);
+		float racerY = racer.get(TransformPart.class).getPosition().y;
+		float progressRatio = LevelUtils.getProgressRatio(racerY, RACER_START_POSITION.y);
+		float scoreMultiplier = Interpolation.linear.apply(
+				progressScoreMultiplier.min(), progressScoreMultiplier.max(), progressRatio);
+		float scoreBaseIncrease = racer.get(TransformPart.class).getPosition().y - oldRacerY;
+		score += scoreBaseIncrease * scoreMultiplier;
 	}
 	
 	private void add(final TerrainSection terrainSection) {

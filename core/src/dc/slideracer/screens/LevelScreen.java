@@ -1,6 +1,8 @@
 package dc.slideracer.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
@@ -13,11 +15,13 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import dc.slideracer.level.LevelController;
 import dc.slideracer.ui.UiPack;
 import dclib.graphics.TextureCache;
+import dclib.system.Input;
 import dclib.util.InputUtils;
 
 public final class LevelScreen implements Screen {
 
 	private final LevelController controller;
+	private final InputProcessor levelInputProcessor;
 	private final UiPack uiPack;
 	private final Stage stage;
 	private Table worldTable;
@@ -28,7 +32,10 @@ public final class LevelScreen implements Screen {
 			final ShapeRenderer shapeRenderer, final UiPack uiPack) {
 		this.uiPack = uiPack;
 		controller = new LevelController(textureCache, spriteBatch, shapeRenderer);
+		levelInputProcessor = new LevelInputProcessor();
+		Input.addProcessor(levelInputProcessor);
 		stage = createStage();
+		Input.addProcessor(stage);
 	}
 	
 	@Override
@@ -65,6 +72,8 @@ public final class LevelScreen implements Screen {
 	public void dispose() {
 		stage.dispose();
 		controller.dispose();
+		Input.removeProcessor(stage);
+		Input.removeProcessor(levelInputProcessor);
 	}
 	
 	private Stage createStage() {
@@ -106,6 +115,55 @@ public final class LevelScreen implements Screen {
 	private void clearScreen() {
 		Gdx.gl.glClearColor(0, 0, 0, 0);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+	}
+	
+	private final class LevelInputProcessor implements InputProcessor {
+		
+		@Override
+		public final boolean keyDown(final int keycode) {
+			return false;
+		}
+
+		@Override
+		public final boolean keyUp(final int keycode) {
+			switch (keycode) {
+			case Keys.ESCAPE:
+				controller.toggleRunning();
+				return true;
+			};
+			return false;
+		}
+
+		@Override
+		public final boolean keyTyped(final char character) {
+			return false;
+		}
+
+		@Override
+		public final boolean touchDown(final int screenX, final int screenY, final int pointer, final int button) {
+			return false;
+		}
+
+		@Override
+		public final boolean touchUp(final int screenX, final int screenY, final int pointer, final int button) {
+			return false;
+		}
+
+		@Override
+		public final boolean touchDragged(final int screenX, final int screenY, final int pointer) {
+			return false;
+		}
+
+		@Override
+		public final boolean mouseMoved(final int screenX, final int screenY) {
+			return false;
+		}
+
+		@Override
+		public final boolean scrolled(final int amount) {
+			return false;
+		}
+
 	}
 
 }

@@ -60,6 +60,7 @@ public final class LevelController {
 	private static final Vector3 RACER_START_POSITION = new Vector3(0, 0, 1);
 	private static final Vector2 RACER_SIZE = new Vector2(1.5f, 1.5f);
 	
+	private boolean isRunning = true;
 	private float score = 0;
 	private final EntityFactory entityFactory;
 	private final EntityCache entityCache;
@@ -97,6 +98,10 @@ public final class LevelController {
 		setupLevel();
 	}
 	
+	public final void toggleRunning() {
+		isRunning = !isRunning;
+	}
+	
 	public final int getScore() {
 		return MathUtils.floor(score);
 	}
@@ -106,8 +111,10 @@ public final class LevelController {
 	}
 
 	public final void update(final float delta) {
-		advancer.advance(delta);
-		updateTerrain();
+		if (isRunning) {
+			advancer.advance(delta);
+			updateTerrain();
+		}
 	}
 
 	public final void draw() {

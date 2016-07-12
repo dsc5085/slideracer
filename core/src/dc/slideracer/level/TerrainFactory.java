@@ -18,7 +18,7 @@ import dclib.util.Maths;
 
 public class TerrainFactory {
 
-	private static final FloatRange EDGE_ANGLE_RANGE = new FloatRange(60, 120);
+	private static final FloatRange EDGE_ANGLE_RANGE = new FloatRange(75, 105);
 	
 	private final EntityFactory entityFactory;
 	private final Rectangle racerBounds;
@@ -30,12 +30,12 @@ public class TerrainFactory {
 	private final float obstacleBaseDepth;
 
 	public TerrainFactory(final EntityFactory entityFactory, final Rectangle racerBounds) {
+		edgeYOffsetRange = new FloatRange(2 * racerBounds.height, 4 * racerBounds.height);
+		beginPathBufferRange = new FloatRange(5 * racerBounds.width, 6 * racerBounds.width);
+		endPathBufferRange =  new FloatRange(2 * racerBounds.width, 3 * racerBounds.width);
 		this.entityFactory = entityFactory;
 		this.racerBounds = racerBounds;
 		this.startY = racerBounds.y;
-		edgeYOffsetRange = new FloatRange(2 * racerBounds.height, 6 * racerBounds.height);
-		beginPathBufferRange = new FloatRange(6 * racerBounds.width, 8 * racerBounds.width);
-		endPathBufferRange =  new FloatRange(3 * racerBounds.width, 4 * racerBounds.width);
 		obstacleBaseDepth = racerBounds.width;
 	}
 	
@@ -116,7 +116,7 @@ public class TerrainFactory {
 	}
 
 	private FloatRange getPathBufferRange(final float vertexY) {
-		float progressRatio = LevelUtils.getProgressRatio(racerBounds.y, startY);
+		float progressRatio = LevelUtils.getProgressRatio(vertexY, startY);
 		float minPathBuffer = Interpolation.linear.apply(beginPathBufferRange.min(), endPathBufferRange.min(), 
 				progressRatio);
 		float maxPathBuffer = Interpolation.linear.apply(beginPathBufferRange.max(), endPathBufferRange.max(), 

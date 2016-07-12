@@ -6,9 +6,9 @@ public final class LevelUtils {
 	private LevelUtils() {
 	}
 	
-	public static final float getProgressRatio(final float racerY, final float startY) {
+	public static final float getProgressRatio(final float currentY, final float startY) {
 		final float maxDifficultyHeight = 500;
-		return (racerY - startY) / maxDifficultyHeight;
+		return Math.min((currentY - startY) / maxDifficultyHeight, 1);
 	}
 	
 }

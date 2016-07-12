@@ -58,7 +58,7 @@ public final class LevelController {
 
 	private static final int PIXELS_PER_UNIT = 32;
 	private static final Vector2 VIEWPORT_SIZE = new Vector2(10 * PIXELS_PER_UNIT, 7.5f * PIXELS_PER_UNIT);
-	private static final float TERRAIN_SECTION_HEIGHT = 10 * VIEWPORT_SIZE.y / PIXELS_PER_UNIT;
+	private static final float TERRAIN_SECTION_HEIGHT = 4 * VIEWPORT_SIZE.y / PIXELS_PER_UNIT;
 	private static final Vector3 RACER_START_POSITION = new Vector3(0, 0, 1);
 	private static final Vector2 RACER_SIZE = new Vector2(1.5f, 1.5f);
 	

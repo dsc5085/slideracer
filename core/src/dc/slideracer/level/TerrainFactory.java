@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 import dclib.epf.Entity;
+import dclib.geometry.RectangleUtils;
 import dclib.geometry.VectorUtils;
 import dclib.geometry.VertexUtils;
 import dclib.util.FloatRange;
@@ -35,8 +36,15 @@ public class TerrainFactory {
 		endPathBufferRange =  new FloatRange(2 * racerBounds.width, 3 * racerBounds.width);
 		this.entityFactory = entityFactory;
 		this.racerBounds = racerBounds;
-		this.startY = racerBounds.y;
+		startY = racerBounds.y;
 		obstacleBaseDepth = racerBounds.width;
+	}
+	
+	public final TerrainSection create(final float height) {
+		float pathBuffer = getPathBufferRange(startY).max() / 2;
+		Vector2 leftCliffStartVertex = new Vector2(racerBounds.x - pathBuffer, racerBounds.y);
+		Vector2 rightCliffStartVertex = new Vector2(RectangleUtils.right(racerBounds) + pathBuffer, racerBounds.y);
+		return create(leftCliffStartVertex, rightCliffStartVertex, height);
 	}
 	
 	public final TerrainSection create(final Vector2 leftCliffStartVertex, final Vector2 rightCliffStartVertex, 

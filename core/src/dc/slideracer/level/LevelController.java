@@ -43,7 +43,9 @@ import dclib.epf.parts.DrawablePart;
 import dclib.epf.parts.TransformPart;
 import dclib.epf.systems.DrawableSystem;
 import dclib.epf.systems.TranslateSystem;
+import dclib.eventing.DefaultEvent;
 import dclib.eventing.DefaultListener;
+import dclib.eventing.EventDelegate;
 import dclib.geometry.PolygonUtils;
 import dclib.geometry.RectangleUtils;
 import dclib.geometry.UnitConverter;
@@ -61,6 +63,8 @@ public final class LevelController {
 	private static final float TERRAIN_SECTION_HEIGHT = 4 * VIEWPORT_SIZE.y / PIXELS_PER_UNIT;
 	private static final Vector3 RACER_START_POSITION = new Vector3(0, 0, 1);
 	private static final Vector2 RACER_SIZE = new Vector2(1.5f, 1.5f);
+	
+	private final EventDelegate<DefaultListener> finishedDelegate = new EventDelegate<DefaultListener>();
 	
 	private boolean isRunning = true;
 	private float score = 0;
@@ -98,6 +102,10 @@ public final class LevelController {
 		entityDrawers.add(new EntityColliderDrawer(shapeRenderer, camera, PIXELS_PER_UNIT));
 		addSystems();
 		setupLevel();
+	}
+	
+	public final void addFinishedListener(final DefaultListener listener) {
+		finishedDelegate.listen(listener);
 	}
 	
 	public final void toggleRunning() {
@@ -143,9 +151,13 @@ public final class LevelController {
 			public void removed(final Entity entity) {
 				spawnOnDeath(entity);
 				fragment(entity);
+				checkFinished(entity);
+			}
+
+			private void checkFinished(final Entity entity) {
 				if (entity == racer) {
+					finishedDelegate.notify(new DefaultEvent());
 					dispose();
-					setupLevel();
 				}
 			}
 		};
@@ -230,11 +242,7 @@ public final class LevelController {
 	}
 
 	private void spawnInitialEntities() {
-		// TODO: More precise start vertex x
-		Vector2 leftCliffStartVertex = new Vector2(RACER_START_POSITION.x - 2, RACER_START_POSITION.y);
-		Vector2 rightCliffStartVertex = new Vector2(RACER_START_POSITION.x + 2, RACER_START_POSITION.y);
-		TerrainSection terrainSection = terrainFactory.create(leftCliffStartVertex, rightCliffStartVertex, 
-				TERRAIN_SECTION_HEIGHT);
+		TerrainSection terrainSection = terrainFactory.create(TERRAIN_SECTION_HEIGHT);
 		add(terrainSection);
 		racer = entityFactory.createRacer(RACER_SIZE, RACER_START_POSITION);
 		entityManager.add(racer);

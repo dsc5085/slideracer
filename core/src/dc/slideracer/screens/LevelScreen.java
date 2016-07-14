@@ -5,8 +5,6 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -14,7 +12,6 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import dc.slideracer.level.LevelController;
 import dc.slideracer.ui.UiPack;
-import dclib.graphics.TextureCache;
 import dclib.system.Input;
 import dclib.util.InputUtils;
 
@@ -28,10 +25,9 @@ public final class LevelScreen implements Screen {
 	private Table statusTable;
 	private Label scoreValueLabel;
 	
-	public LevelScreen(final TextureCache textureCache, final PolygonSpriteBatch spriteBatch, 
-			final ShapeRenderer shapeRenderer, final UiPack uiPack) {
+	public LevelScreen(final LevelController controller, final UiPack uiPack) {
+		this.controller = controller;
 		this.uiPack = uiPack;
-		controller = new LevelController(textureCache, spriteBatch, shapeRenderer);
 		levelInputProcessor = new LevelInputProcessor();
 		Input.addProcessor(levelInputProcessor);
 		stage = createStage();

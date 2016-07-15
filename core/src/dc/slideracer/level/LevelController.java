@@ -157,7 +157,6 @@ public final class LevelController {
 			private void checkFinished(final Entity entity) {
 				if (entity == racer) {
 					finishedDelegate.notify(new DefaultEvent());
-					dispose();
 				}
 			}
 		};

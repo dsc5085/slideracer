@@ -11,6 +11,7 @@ import dc.slideracer.screens.LevelScreen;
 import dc.slideracer.session.GameSession;
 import dc.slideracer.ui.UiPack;
 import dclib.eventing.DefaultListener;
+import dclib.graphics.ScreenUtils;
 import dclib.graphics.TextureCache;
 import dclib.system.ScreenManager;
 import dclib.util.PathUtils;
@@ -33,12 +34,12 @@ public class SlideRacerGame extends ApplicationAdapter {
 		shapeRenderer = new ShapeRenderer();
 		uiPack = new UiPack("ui/test/uiskin.json", "ui/ocr/ocr_32.fnt", "ui/ocr/ocr_24.fnt");
 		gameSession = xmlContext.unmarshal(Gdx.files.local(GameSession.FILE_PATH));
-		LevelScreen levelScreen = createLevelScreen();
-		screenManager.add(levelScreen);
+		screenManager.add(createHighScoresScreen());
 	}
 
 	@Override
 	public final void render () {
+		ScreenUtils.clear();
 		screenManager.render();
 	}
 	
@@ -72,26 +73,26 @@ public class SlideRacerGame extends ApplicationAdapter {
 			public void executed() {
 				int score = controller.getScore();
 				HighScoresScreen highScoresScreen = createHighScoresScreen(score);
-				screenManager.swap(levelScreen, highScoresScreen);
+				screenManager.add(highScoresScreen);
 			}
 		});
 		return levelScreen;
 	}
 	
-	private HighScoresScreen createHighScoresScreen(final int score) {
-		HighScoresScreen highScoresScreen = new HighScoresScreen(uiPack, gameSession, xmlContext, score);
-		setupHighScoresScreen(highScoresScreen);
-		return highScoresScreen;
+	private HighScoresScreen createHighScoresScreen() {
+		return createHighScoresScreen(0);
 	}
 	
-	private void setupHighScoresScreen(final HighScoresScreen highScoresScreen) {
+	private HighScoresScreen createHighScoresScreen(final int score) {
+		final HighScoresScreen highScoresScreen = new HighScoresScreen(uiPack, gameSession, xmlContext, score);
 		highScoresScreen.addClosedListener(new DefaultListener() {
 			@Override
 			public void executed() {
 				LevelScreen levelScreen = createLevelScreen();
-				screenManager.swap(highScoresScreen, levelScreen);
+				screenManager.swap(levelScreen);
 			}
 		});
+		return highScoresScreen;
 	}
 	
 }

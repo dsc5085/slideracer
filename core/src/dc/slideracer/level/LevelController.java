@@ -20,12 +20,9 @@ import dc.slideracer.collision.system.CollisionManager;
 import dc.slideracer.collision.system.DamageCollisionResolver;
 import dc.slideracer.epf.graphics.EntityColliderDrawer;
 import dc.slideracer.epf.systems.CollisionSystem;
-import dc.slideracer.epf.systems.ColorChangeSystem;
 import dc.slideracer.epf.systems.EmitSystem;
 import dc.slideracer.epf.systems.RacerInputSystem;
-import dc.slideracer.epf.systems.TimedDeathSystem;
 import dc.slideracer.parts.FragsPart;
-import dc.slideracer.parts.HealthPart;
 import dc.slideracer.parts.SpawnOnDeathPart;
 import dclib.epf.DefaultEntityManager;
 import dclib.epf.DefaultEntitySystemManager;
@@ -40,8 +37,12 @@ import dclib.epf.graphics.EntityDrawer;
 import dclib.epf.graphics.EntitySpriteDrawer;
 import dclib.epf.graphics.EntityTransformDrawer;
 import dclib.epf.parts.DrawablePart;
+import dclib.epf.parts.HealthPart;
 import dclib.epf.parts.TransformPart;
+import dclib.epf.systems.ColorChangeSystem;
 import dclib.epf.systems.DrawableSystem;
+import dclib.epf.systems.ParticlesSystem;
+import dclib.epf.systems.TimedDeathSystem;
 import dclib.epf.systems.TranslateSystem;
 import dclib.eventing.DefaultEvent;
 import dclib.eventing.DefaultListener;
@@ -177,8 +178,9 @@ public final class LevelController {
 		entitySystemManager.add(new RacerInputSystem());
 		entitySystemManager.add(new TimedDeathSystem(entityManager));
 		entitySystemManager.add(new ColorChangeSystem());
-		entitySystemManager.add(new DrawableSystem(unitConverter));
 		entitySystemManager.add(new EmitSystem(entitySpawner));
+		entitySystemManager.add(new ParticlesSystem(unitConverter));
+		entitySystemManager.add(new DrawableSystem(unitConverter));
 	}
 	
 	private Advancer createAdvancer() {

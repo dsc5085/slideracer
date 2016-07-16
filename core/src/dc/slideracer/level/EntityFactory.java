@@ -1,6 +1,8 @@
 package dc.slideracer.level;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
@@ -10,17 +12,18 @@ import com.badlogic.gdx.math.Vector3;
 import dc.slideracer.collision.CollisionType;
 import dc.slideracer.parts.AccelerationPart;
 import dc.slideracer.parts.CollisionPart;
-import dc.slideracer.parts.ColorChangePart;
 import dc.slideracer.parts.DamageOnCollisionPart;
 import dc.slideracer.parts.EmitPart;
 import dc.slideracer.parts.FragsPart;
-import dc.slideracer.parts.HealthPart;
 import dc.slideracer.parts.RacerInputPart;
 import dc.slideracer.parts.SpawnOnDeathPart;
 import dc.slideracer.parts.SpeedPart;
-import dc.slideracer.parts.TimedDeathPart;
 import dclib.epf.Entity;
+import dclib.epf.parts.ColorChangePart;
 import dclib.epf.parts.DrawablePart;
+import dclib.epf.parts.HealthPart;
+import dclib.epf.parts.ParticlesPart;
+import dclib.epf.parts.TimedDeathPart;
 import dclib.epf.parts.TransformPart;
 import dclib.epf.parts.TranslatePart;
 import dclib.geometry.PolygonFactory;
@@ -61,6 +64,12 @@ public final class EntityFactory {
 		entity.attach(new SpawnOnDeathPart("explosion"));
 		entity.attach(new FragsPart());
 		entity.attach(new EmitPart("smoke", new Vector2(size.x / 2, size.y / 5), new Timer(0.2f)));
+		ParticleEffect effect = new ParticleEffect();
+		// TODO: Figure out best way to load the particle assets
+		effect.load(Gdx.files.internal("particles/flamejet"), Gdx.files.internal("textures/objects"));
+		effect.start();
+		Vector2 localPosition = new Vector2(size.x / 2, 3);
+		entity.attach(new ParticlesPart(effect, localPosition));
 		return entity;
 	}
 

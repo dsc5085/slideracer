@@ -10,10 +10,10 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 
-import dc.slideracer.parts.ColorChangePart;
-import dc.slideracer.parts.TimedDeathPart;
 import dclib.epf.Entity;
+import dclib.epf.parts.ColorChangePart;
 import dclib.epf.parts.DrawablePart;
+import dclib.epf.parts.TimedDeathPart;
 import dclib.epf.parts.TransformPart;
 import dclib.epf.parts.TranslatePart;
 import dclib.geometry.PolygonFactory;

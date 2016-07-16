@@ -1,8 +1,8 @@
 package dc.slideracer.collision.system;
 
 import dc.slideracer.parts.DamageOnCollisionPart;
-import dc.slideracer.parts.HealthPart;
 import dclib.epf.Entity;
+import dclib.epf.parts.HealthPart;
 
 public class DamageCollisionResolver implements CollisionResolver {
 

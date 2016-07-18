@@ -41,7 +41,7 @@ import dclib.epf.parts.HealthPart;
 import dclib.epf.parts.TransformPart;
 import dclib.epf.systems.ColorChangeSystem;
 import dclib.epf.systems.DrawableSystem;
-import dclib.epf.systems.ParticlesSystem;
+import dclib.epf.systems.ParticleSystem;
 import dclib.epf.systems.TimedDeathSystem;
 import dclib.epf.systems.TranslateSystem;
 import dclib.eventing.DefaultEvent;
@@ -179,7 +179,7 @@ public final class LevelController {
 		entitySystemManager.add(new TimedDeathSystem(entityManager));
 		entitySystemManager.add(new ColorChangeSystem());
 		entitySystemManager.add(new EmitSystem(entitySpawner));
-		entitySystemManager.add(new ParticlesSystem(unitConverter));
+		entitySystemManager.add(new ParticleSystem(unitConverter));
 		entitySystemManager.add(new DrawableSystem(unitConverter));
 	}
 	
@@ -243,20 +243,32 @@ public final class LevelController {
 	}
 
 	private void spawnInitialEntities() {
-		TerrainSection terrainSection = terrainFactory.create(TERRAIN_SECTION_HEIGHT);
-		add(terrainSection);
 		racer = entityFactory.createRacer(RACER_SIZE, RACER_START_POSITION);
 		entityManager.add(racer);
+		TerrainSection terrainSection = createInitialTerrain();
+		add(terrainSection);
+	}
+	
+	private TerrainSection createInitialTerrain() {
+		float terrainY = getViewport().y;
+		float pathBuffer = terrainFactory.getPathBufferRange(RACER_START_POSITION.y).max() / 2;
+		Vector2 leftCliffStartVertex = new Vector2(RACER_START_POSITION.x - pathBuffer, terrainY);
+		float rightCliffStartX = RACER_START_POSITION.x + RACER_SIZE.x + pathBuffer;
+		Vector2 rightCliffStartVertex = new Vector2(rightCliffStartX, terrainY);
+		return terrainFactory.create(leftCliffStartVertex, rightCliffStartVertex, TERRAIN_SECTION_HEIGHT);
 	}
 	
 	private void updateCamera() {
+		CameraUtils.setViewport(camera, getViewport(), PIXELS_PER_UNIT);
+		camera.update();
+	}
+	
+	private Rectangle getViewport() {
 		Vector2 worldViewportSize = unitConverter.toWorldUnits(camera.viewportWidth, camera.viewportHeight);
 		TransformPart racerTransformPart = racer.get(TransformPart.class);
 		float newCameraX = racerTransformPart.getCenter().x  - worldViewportSize.x / 2;
-		float newCameraY = racerTransformPart.getPosition().y;
-		Rectangle newViewport = new Rectangle(newCameraX, newCameraY, worldViewportSize.x, worldViewportSize.y);
-		CameraUtils.setViewport(camera, newViewport, PIXELS_PER_UNIT);
-		camera.update();
+		float newCameraY = racerTransformPart.getPosition().y - racerTransformPart.getSize().y;
+		return new Rectangle(newCameraX, newCameraY, worldViewportSize.x, worldViewportSize.y);
 	}
 	
 	private void updateTerrain() {

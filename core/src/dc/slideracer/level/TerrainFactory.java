@@ -11,7 +11,6 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 import dclib.epf.Entity;
-import dclib.geometry.RectangleUtils;
 import dclib.geometry.VectorUtils;
 import dclib.geometry.VertexUtils;
 import dclib.util.FloatRange;
@@ -40,13 +39,6 @@ public class TerrainFactory {
 		obstacleBaseDepth = racerBounds.width;
 	}
 	
-	public final TerrainSection create(final float height) {
-		float pathBuffer = getPathBufferRange(startY).max() / 2;
-		Vector2 leftCliffStartVertex = new Vector2(racerBounds.x - pathBuffer, racerBounds.y);
-		Vector2 rightCliffStartVertex = new Vector2(RectangleUtils.right(racerBounds) + pathBuffer, racerBounds.y);
-		return create(leftCliffStartVertex, rightCliffStartVertex, height);
-	}
-	
 	public final TerrainSection create(final Vector2 leftCliffStartVertex, final Vector2 rightCliffStartVertex, 
 			final float height) {
 		final float outsideEdgeBuffer = racerBounds.width * 10;
@@ -68,6 +60,15 @@ public class TerrainFactory {
 		Rectangle backgroundBounds = new Rectangle(leftOutsideEdgeX, bottom, backgroundWidth, height);
 		Entity background = entityFactory.createBackground(backgroundBounds);
 		return new TerrainSection(leftCliff, rightCliff, background, obstacles);
+	}
+
+	public final FloatRange getPathBufferRange(final float vertexY) {
+		float progressRatio = LevelUtils.getProgressRatio(vertexY, startY);
+		float minPathBuffer = Interpolation.linear.apply(beginPathBufferRange.min(), endPathBufferRange.min(), 
+				progressRatio);
+		float maxPathBuffer = Interpolation.linear.apply(beginPathBufferRange.max(), endPathBufferRange.max(), 
+				progressRatio);
+		return new FloatRange(minPathBuffer, maxPathBuffer);
 	}
 	
 	private List<Vector2> createLeftCliffEdgeVertices(final Vector2 startVertex, final float terrainTop) {
@@ -121,15 +122,6 @@ public class TerrainFactory {
 		float rightEdgeAngle = MathUtils.random(minRightEdgeAngle, maxRightEdgeAngle);
 		float clampedRightEdgeAngle = MathUtils.clamp(rightEdgeAngle, EDGE_ANGLE_RANGE.min(), EDGE_ANGLE_RANGE.max());
 		return (float)Math.toRadians(clampedRightEdgeAngle);
-	}
-
-	private FloatRange getPathBufferRange(final float vertexY) {
-		float progressRatio = LevelUtils.getProgressRatio(vertexY, startY);
-		float minPathBuffer = Interpolation.linear.apply(beginPathBufferRange.min(), endPathBufferRange.min(), 
-				progressRatio);
-		float maxPathBuffer = Interpolation.linear.apply(beginPathBufferRange.max(), endPathBufferRange.max(), 
-				progressRatio);
-		return new FloatRange(minPathBuffer, maxPathBuffer);
 	}
 	
 	private List<Vector2> createCliffVertices(final List<Vector2> cliffEdgeVertices, final float outsideEdgeX) {

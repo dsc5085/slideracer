@@ -1,5 +1,8 @@
 package dc.slideracer.level;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
@@ -20,6 +23,7 @@ import dc.slideracer.parts.RacerInputPart;
 import dc.slideracer.parts.SpawnOnDeathPart;
 import dc.slideracer.parts.SpeedPart;
 import dclib.epf.Entity;
+import dclib.epf.parts.Attachment;
 import dclib.epf.parts.ColorChangePart;
 import dclib.epf.parts.DrawablePart;
 import dclib.epf.parts.HealthPart;
@@ -65,9 +69,11 @@ public final class EntityFactory {
 		entity.attach(new SpawnOnDeathPart("explosion"));
 		entity.attach(new FragsPart());
 		entity.attach(new EmitPart("smoke", new Vector2(size.x / 2, size.y / 5), new Timer(0.2f)));
-		ParticleEffect effect = loadParticleEffect("flamejet");
-		Vector2 localPosition = new Vector2(size.x / 2, 0);
-		entity.attach(new ParticlesPart(effect, localPosition));
+		List<Attachment<ParticleEffect>> particleEffects = new ArrayList<Attachment<ParticleEffect>>();
+		Vector2 effectLocalPosition = new Vector2(size.x / 2, 0);
+		particleEffects.add(createParticleEffect("flamejet", effectLocalPosition));
+		particleEffects.add(createParticleEffect("smokejet", effectLocalPosition));
+		entity.attach(new ParticlesPart(particleEffects));
 		return entity;
 	}
 
@@ -123,13 +129,14 @@ public final class EntityFactory {
 		return entity;
 	}
 	
-	private final ParticleEffect loadParticleEffect(final String particleEffectPath) {
+	private final Attachment<ParticleEffect> createParticleEffect(final String particleEffectPath, 
+			final Vector2 localPosition) {
 		ParticleEffect effect = new ParticleEffect();
 		TextureAtlas atlas = textureCache.getAtlas("objects");
 		effect.load(Gdx.files.internal("particles/" + particleEffectPath), atlas);
 		effect.scaleEffect(unitConverter.getPixelsPerUnit());
 		effect.start();
-		return effect;
+		return new Attachment<ParticleEffect>(effect, localPosition);
 	}
 	
 }

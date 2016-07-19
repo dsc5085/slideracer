@@ -15,7 +15,7 @@ import dclib.geometry.PolygonUtils;
 public final class CollisionSystem extends EntitySystem {
 
 	@Override
-	public final void updateEntity(final float delta, final Entity entity) {
+	public final void update(final float delta, final Entity entity) {
 		if (entity.has(CollisionPart.class)) {
 			Polygon polygon = entity.get(TransformPart.class).getPolygon();
 			List<PolygonPartition> partitions = entity.get(CollisionPart.class).getPartitions();

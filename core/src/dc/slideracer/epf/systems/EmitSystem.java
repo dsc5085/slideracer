@@ -18,7 +18,7 @@ public final class EmitSystem extends EntitySystem {
 	}
 	
 	@Override
-	public final void updateEntity(final float delta, final Entity entity) {
+	public final void update(final float delta, final Entity entity) {
 		if (entity.hasActive(EmitPart.class)) {
 			EmitPart emitPart = entity.get(EmitPart.class);
 			emitPart.update(delta);

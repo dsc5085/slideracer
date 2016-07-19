@@ -15,7 +15,7 @@ import dclib.util.Maths;
 public final class RacerInputSystem extends EntitySystem {
 	
 	@Override
-	public final void updateEntity(final float delta, final Entity entity) {
+	public final void update(final float delta, final Entity entity) {
 		if (entity.hasActive(RacerInputPart.class)) {
 			float maxSpeed = entity.get(SpeedPart.class).getSpeed(); 
 			if (Gdx.input.isKeyPressed(Keys.A)) {

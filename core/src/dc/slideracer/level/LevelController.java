@@ -18,7 +18,6 @@ import dc.slideracer.collision.CollisionType;
 import dc.slideracer.collision.system.CollisionChecker;
 import dc.slideracer.collision.system.CollisionManager;
 import dc.slideracer.collision.system.DamageCollisionResolver;
-import dc.slideracer.epf.graphics.EntityColliderDrawer;
 import dc.slideracer.epf.systems.CollisionSystem;
 import dc.slideracer.epf.systems.EmitSystem;
 import dc.slideracer.epf.systems.RacerInputSystem;
@@ -35,7 +34,6 @@ import dclib.epf.EntitySpawner;
 import dclib.epf.EntitySystemManager;
 import dclib.epf.graphics.EntityDrawer;
 import dclib.epf.graphics.EntitySpriteDrawer;
-import dclib.epf.graphics.EntityTransformDrawer;
 import dclib.epf.parts.DrawablePart;
 import dclib.epf.parts.HealthPart;
 import dclib.epf.parts.TransformPart;
@@ -60,8 +58,8 @@ import dclib.util.Maths;
 public final class LevelController {
 
 	private static final int PIXELS_PER_UNIT = 32;
-	private static final Vector2 VIEWPORT_SIZE = new Vector2(10 * PIXELS_PER_UNIT, 7.5f * PIXELS_PER_UNIT);
-	private static final float TERRAIN_SECTION_HEIGHT = 4 * VIEWPORT_SIZE.y / PIXELS_PER_UNIT;
+	private static final Vector2 VIEWPORT_SIZE = new Vector2(20 * PIXELS_PER_UNIT, 15f * PIXELS_PER_UNIT);
+	private static final float TERRAIN_SECTION_HEIGHT = 3 * VIEWPORT_SIZE.y / PIXELS_PER_UNIT;
 	private static final Vector3 RACER_START_POSITION = new Vector3(0, 0, 1);
 	private static final Vector2 RACER_SIZE = new Vector2(1.5f, 1.5f);
 	
@@ -99,8 +97,8 @@ public final class LevelController {
 		entityCache = new DefaultEntityCache(entityFactory);
 		entitySpawner = new EntitySpawner(entityCache, entityManager);
 		entityDrawers.add(new EntitySpriteDrawer(spriteBatch, camera));
-		entityDrawers.add(new EntityTransformDrawer(shapeRenderer, camera, PIXELS_PER_UNIT));
-		entityDrawers.add(new EntityColliderDrawer(shapeRenderer, camera, PIXELS_PER_UNIT));
+//		entityDrawers.add(new EntityTransformDrawer(shapeRenderer, camera, PIXELS_PER_UNIT));
+//		entityDrawers.add(new EntityColliderDrawer(shapeRenderer, camera, PIXELS_PER_UNIT));
 		addSystems();
 		setupLevel();
 	}

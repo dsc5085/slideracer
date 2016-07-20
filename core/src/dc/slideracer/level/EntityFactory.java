@@ -17,7 +17,6 @@ import dc.slideracer.collision.CollisionType;
 import dc.slideracer.parts.AccelerationPart;
 import dc.slideracer.parts.CollisionPart;
 import dc.slideracer.parts.DamageOnCollisionPart;
-import dc.slideracer.parts.EmitPart;
 import dc.slideracer.parts.FragsPart;
 import dc.slideracer.parts.RacerInputPart;
 import dc.slideracer.parts.SpawnOnDeathPart;
@@ -36,7 +35,6 @@ import dclib.geometry.UnitConverter;
 import dclib.geometry.VertexUtils;
 import dclib.graphics.ConvexHullCache;
 import dclib.graphics.TextureCache;
-import dclib.util.Timer;
 
 public final class EntityFactory {
 	
@@ -68,7 +66,6 @@ public final class EntityFactory {
 		entity.attach(new HealthPart(10));
 		entity.attach(new SpawnOnDeathPart("explosion"));
 		entity.attach(new FragsPart());
-		entity.attach(new EmitPart("smoke", new Vector2(size.x / 2, size.y / 5), new Timer(0.2f)));
 		List<Attachment<ParticleEffect>> particleEffects = new ArrayList<Attachment<ParticleEffect>>();
 		Vector2 effectLocalPosition = new Vector2(size.x / 2, 0);
 		particleEffects.add(createParticleEffect("flamejet", effectLocalPosition));
@@ -84,19 +81,6 @@ public final class EntityFactory {
 		Entity entity = createBaseEntity(polygon, 1, region);
 		entity.attach(new ColorChangePart(1, Color.WHITE.cpy(), Color.CLEAR.cpy()));
 		entity.attach(new TimedDeathPart(1));
-		return entity;
-	}
-
-	public final Entity createSmoke() {
-		PolygonRegion region = textureCache.getPolygonRegion("objects/smoke");
-		Vector2 size = new Vector2(0.3f, 0.3f);
-		Polygon polygon = convexHullCache.create("objects/smoke", size);
-		Entity entity = createBaseEntity(polygon, 1.1f, region);
-		entity.attach(new ColorChangePart(1, Color.WHITE.cpy(), Color.CLEAR.cpy()));
-		entity.attach(new TimedDeathPart(1));
-		TranslatePart translatePart = new TranslatePart();
-		translatePart.setVelocity(new Vector2(0, RACER_VELOCITY_Y));
-		entity.attach(translatePart);
 		return entity;
 	}
 	

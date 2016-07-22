@@ -9,6 +9,8 @@ public class DesktopLauncher {
 	
 	public static void main (final String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+		config.width = 1024;
+		config.height = 768;
 		new LwjglApplication(new SlideRacerGame(), config);
 	}
 	

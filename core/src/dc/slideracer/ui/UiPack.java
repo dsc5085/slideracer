@@ -17,6 +17,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 
+import dclib.util.Point;
+
 // TODO: Replace FontSize with "ocr_24", "ocr_32", etc?
 // Hack: Call to setStyle required to ensure that modified style from getStyle is updated
 public final class UiPack {
@@ -24,10 +26,13 @@ public final class UiPack {
 	private static final FontSize DEFAULT_SIZE = FontSize.MEDIUM;
 	
 	private final Skin skin;
+	private final Point defaultScreenSize;
 	private final Map<FontSize, BitmapFont> fonts = new HashMap<FontSize, BitmapFont>();
 	
-	public UiPack(final String skinPath, final String mediumFontPath, final String smallFontPath) {
+	public UiPack(final String skinPath, final Point defaultScreenSize, final String mediumFontPath, 
+			final String smallFontPath) {
 		skin = new Skin(Gdx.files.internal(skinPath));
+		this.defaultScreenSize = defaultScreenSize;
 		BitmapFont mediumFont = new BitmapFont(Gdx.files.internal(mediumFontPath));
 		fonts.put(FontSize.MEDIUM, mediumFont);
 		BitmapFont smallFont = new BitmapFont(Gdx.files.internal(smallFontPath));
@@ -104,6 +109,14 @@ public final class UiPack {
 	
 	public final <T> SelectBox<T> selectBox() {
 		return new SelectBox<T>(skin);
+	}
+	
+	public final void scaleToScreenSize(final int screenWidth, final int screenHeight) {
+		float scaleX = (float)screenWidth / defaultScreenSize.x(); 
+		float scaleY = (float)screenHeight / defaultScreenSize.y();
+		for (BitmapFont font : fonts.values()) {
+			font.getData().setScale(scaleX, scaleY);
+		}
 	}
 	
 	public final void dispose() {

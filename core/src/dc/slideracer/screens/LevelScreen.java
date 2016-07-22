@@ -11,6 +11,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import dc.slideracer.level.LevelController;
 import dc.slideracer.ui.UiPack;
 import dclib.system.Input;
+import dclib.ui.StageUtils;
 import dclib.util.InputUtils;
 
 public final class LevelScreen implements Screen {
@@ -47,7 +48,7 @@ public final class LevelScreen implements Screen {
 
 	@Override
 	public void resize(final int width, final int height) {
-	    stage.getViewport().update(width, height, true);
+		StageUtils.resize(stage, width, height);
 	}
 
 	@Override

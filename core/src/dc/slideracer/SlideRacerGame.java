@@ -15,6 +15,7 @@ import dclib.graphics.ScreenUtils;
 import dclib.graphics.TextureCache;
 import dclib.system.ScreenManager;
 import dclib.util.PathUtils;
+import dclib.util.Point;
 import dclib.util.XmlContext;
 
 public class SlideRacerGame extends ApplicationAdapter {
@@ -32,7 +33,8 @@ public class SlideRacerGame extends ApplicationAdapter {
 		textureCache = createTextureCache();
 		spriteBatch = new PolygonSpriteBatch();
 		shapeRenderer = new ShapeRenderer();
-		uiPack = new UiPack("ui/test/uiskin.json", "ui/ocr/ocr_32.fnt", "ui/ocr/ocr_24.fnt");
+		Point defaultScreenSize = new Point(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		uiPack = new UiPack("ui/test/uiskin.json", defaultScreenSize, "ui/ocr/ocr_32.fnt", "ui/ocr/ocr_24.fnt");
 		gameSession = xmlContext.unmarshal(Gdx.files.local(GameSession.FILE_PATH));
 		screenManager.add(createHighScoresScreen());
 	}
@@ -45,6 +47,7 @@ public class SlideRacerGame extends ApplicationAdapter {
 	
 	@Override
 	public final void resize(final int width, final int height) {
+		uiPack.scaleToScreenSize(width, height);
 		screenManager.resize(width, height);
 	}
 

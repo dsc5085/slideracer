@@ -22,6 +22,7 @@ import dclib.eventing.DefaultEvent;
 import dclib.eventing.DefaultListener;
 import dclib.eventing.EventDelegate;
 import dclib.system.Input;
+import dclib.ui.StageUtils;
 import dclib.util.InputUtils;
 import dclib.util.Timer;
 import dclib.util.XmlContext;
@@ -66,7 +67,7 @@ public class HighScoresScreen implements Screen {
 
 	@Override
 	public void resize(final int width, final int height) {
-	    stage.getViewport().update(width, height, true);
+		StageUtils.resize(stage, width, height);
 	}
 
 	@Override
@@ -120,12 +121,12 @@ public class HighScoresScreen implements Screen {
 		Table scoresTable = uiPack.table();
 		List<ScoreEntry> sortedHighScores = getSortedHighScores();
 		for (ScoreEntry highScore : sortedHighScores) {
-			createScoreRow(stage, scoresTable, highScore);
+			addScoreRow(stage, scoresTable, highScore);
 		}
 		return scoresTable;
 	}
 
-	private void createScoreRow(final Stage stage, final Table scoresTable, final ScoreEntry highScore) {
+	private void addScoreRow(final Stage stage, final Table scoresTable, final ScoreEntry highScore) {
 		final int scoreSpaceLeft = 100;
 		Color fontColor;
 		if (highScore == newScoreEntry) {

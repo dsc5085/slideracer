@@ -25,6 +25,7 @@ public final class CollisionPart {
 	
 	public CollisionPart(final CollisionType collisionType, final float[] vertices) {
 		this.collisionType = collisionType;
+		// TODO: store triangulated vertices?
 		List<float[]> partitionsVertices = PolygonFactory.triangulate(vertices);
 		for (float[] partitionVertices : partitionsVertices) {
 			polygonPartitions.add(new PolygonPartition(partitionVertices));

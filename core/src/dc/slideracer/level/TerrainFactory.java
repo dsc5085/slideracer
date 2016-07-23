@@ -180,7 +180,7 @@ public class TerrainFactory {
 
 	private List<Vector2> createIntermediateVerticesWithSetY(
 			final FloatRange obstacleYRange) {
-		final float numIntermediateVertices = MathUtils.random(1, 5);
+		final float numIntermediateVertices = MathUtils.random(2, 5);
 		List<Vector2> intermediateVertices = new ArrayList<Vector2>();
 		for (int i = 0; i < numIntermediateVertices; i++) {
 			intermediateVertices.add(new Vector2(0, obstacleYRange.random()));
@@ -196,7 +196,7 @@ public class TerrainFactory {
 
 	private void setObstacleVerticesX(final float obstacleInnerX,
 			final float obstacleOuterX, final List<Vector2> intermediateVertices) {
-		final float sculptOuterXRatio = 0.5f; 
+		final float sculptOuterXRatio = 0.1f; 
 		int middleVertexIndex = MathUtils.floor(intermediateVertices.size() / 2f);
 		float sculptOuterX = Interpolation.linear.apply(obstacleInnerX, obstacleOuterX, sculptOuterXRatio);
 		intermediateVertices.get(middleVertexIndex).x = obstacleInnerX;

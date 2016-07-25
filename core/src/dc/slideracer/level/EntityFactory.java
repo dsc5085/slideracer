@@ -38,7 +38,7 @@ import dclib.graphics.TextureCache;
 
 public final class EntityFactory {
 	
-	private static final float RACER_VELOCITY_Y = 3;
+	private static final float RACER_VELOCITY_Y = 8;
 
 	private final UnitConverter unitConverter;
 	private final TextureCache textureCache;
@@ -59,8 +59,8 @@ public final class EntityFactory {
 		TranslatePart translatePart = new TranslatePart();
 		translatePart.setVelocity(new Vector2(0, RACER_VELOCITY_Y));
 		entity.attach(translatePart);
-		entity.attach(new SpeedPart(10));
-		entity.attach(new AccelerationPart(10));
+		entity.attach(new SpeedPart(20));
+		entity.attach(new AccelerationPart(40));
 		entity.attach(new RacerInputPart());
 		entity.attach(new CollisionPart(CollisionType.RACER, polygon.getVertices()));
 		entity.attach(new HealthPart(10));

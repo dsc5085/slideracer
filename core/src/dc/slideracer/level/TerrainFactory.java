@@ -18,7 +18,7 @@ import dclib.util.Maths;
 
 public class TerrainFactory {
 
-	private static final FloatRange EDGE_ANGLE_RANGE = new FloatRange(75, 105);
+	private static final FloatRange EDGE_ANGLE_RANGE = new FloatRange(60, 120);
 	
 	private final EntityFactory entityFactory;
 	private final Rectangle racerBounds;
@@ -137,7 +137,7 @@ public class TerrainFactory {
 	private List<Entity> createObstacles(final List<Vector2> leftCliffVertices, 
 			final List<Vector2> rightCliffVertices, final float terrainBottom, final float terrainTop) {
 		final float obstacleHeight = racerBounds.height * 1.5f;
-		final FloatRange yOffsetRange = new FloatRange(5 * racerBounds.height, 10 * racerBounds.height);
+		final FloatRange yOffsetRange = new FloatRange(3 * racerBounds.height, 6 * racerBounds.height);
 		List<Entity> obstacles = new ArrayList<Entity>();
 		float obstacleY = terrainBottom + racerBounds.height;
 		while (true) {

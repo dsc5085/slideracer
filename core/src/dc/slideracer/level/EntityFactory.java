@@ -52,8 +52,8 @@ public final class EntityFactory {
 	}
 	
 	public final Entity createRacer(final Vector2 size, final Vector3 position) {
-		PolygonRegion region = textureCache.getPolygonRegion("objects/tank");
-		Polygon polygon = convexHullCache.create("objects/tank", size);
+		PolygonRegion region = textureCache.getPolygonRegion("objects/slideracer");
+		Polygon polygon = convexHullCache.create("objects/slideracer", size);
 		polygon.setPosition(position.x, position.y);
 		Entity entity = createBaseEntity(polygon, position.z, region);
 		TranslatePart translatePart = new TranslatePart();

@@ -4,19 +4,21 @@ import java.util.Collections;
 import java.util.List;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import dc.slideracer.session.GameSession;
 import dc.slideracer.session.ScoreEntry;
 import dc.slideracer.ui.FontSize;
+import dc.slideracer.ui.UiConstants;
 import dc.slideracer.ui.UiPack;
 import dclib.eventing.DefaultEvent;
 import dclib.eventing.DefaultListener;
@@ -28,19 +30,18 @@ import dclib.util.Timer;
 import dclib.util.XmlContext;
 
 public class HighScoresScreen implements Screen {
-	
+
 	private final EventDelegate<DefaultListener> closedDelegate = new EventDelegate<DefaultListener>();
-	
+
 	private final UiPack uiPack;
 	private final GameSession gameSession;
 	private XmlContext xmlContext = null;
 	private ScoreEntry newScoreEntry = null;
 	private TextField nameField = null;
 	private final Stage stage;
-	private final InputProcessor highScoresInputProcessor;
-	private final Timer transitionTimer = new Timer(1);
+	private final Timer transitionTimer = new Timer(UiConstants.SCREEN_TRANSITION_TIME);
 
-	public HighScoresScreen(final UiPack uiPack, final GameSession gameSession, final XmlContext xmlContext, 
+	public HighScoresScreen(final UiPack uiPack, final GameSession gameSession, final XmlContext xmlContext,
 			final int newScore) {
 		this.uiPack = uiPack;
 		this.gameSession = gameSession;
@@ -50,10 +51,8 @@ public class HighScoresScreen implements Screen {
 		}
 		stage = createStage();
 		Input.addProcessor(stage);
-		highScoresInputProcessor = new HighScoresInputProcessor();
-		Input.addProcessor(highScoresInputProcessor);
 	}
-	
+
 	public final void addClosedListener(final DefaultListener listener) {
 		closedDelegate.listen(listener);
 	}
@@ -89,18 +88,31 @@ public class HighScoresScreen implements Screen {
 
 	@Override
 	public void dispose() {
-		Input.removeProcessor(highScoresInputProcessor);
 		Input.removeProcessor(stage);
 		stage.dispose();
 	}
-	
+
 	private Stage createStage() {
 		Stage stage = new Stage(new ScreenViewport());
 		Table mainTable = createMainTable(stage);
 		stage.addActor(mainTable);
+		stage.addListener(new ClickListener() {
+			@Override
+			public void clicked(final InputEvent event, final float x, final float y) {
+				if (transitionTimer.isElapsed()) {
+					if (newScoreEntry != null) {
+						newScoreEntry.name = nameField.getText();
+						gameSession.addHighScore(newScoreEntry);
+						FileHandle gameSessionFile = Gdx.files.local(GameSession.FILE_PATH);
+						xmlContext.marshal(gameSession, gameSessionFile);
+					}
+					closedDelegate.notify(new DefaultEvent());
+				}
+			}
+		});
 		return stage;
 	}
-	
+
 	private Table createMainTable(final Stage stage) {
 		Table mainTable = uiPack.table();
 		mainTable.setFillParent(true);
@@ -116,7 +128,7 @@ public class HighScoresScreen implements Screen {
 		mainTable.add(uiPack.label("Click or touch to continue...")).row();
 		return mainTable;
 	}
-	
+
 	private Table createScoresTable(final Stage stage) {
 		Table scoresTable = uiPack.table();
 		List<ScoreEntry> sortedHighScores = getSortedHighScores();
@@ -142,7 +154,7 @@ public class HighScoresScreen implements Screen {
 		Label scoreLabel = uiPack.label(scoreString, FontSize.SMALL, fontColor);
 		scoresTable.add(scoreLabel).spaceLeft(scoreSpaceLeft).right().row();
 	}
-	
+
 	private List<ScoreEntry> getSortedHighScores() {
 		List<ScoreEntry> sortedHighScores = gameSession.getSortedHighScores();
 		if (newScoreEntry != null) {
@@ -152,7 +164,7 @@ public class HighScoresScreen implements Screen {
 		Collections.reverse(sortedHighScores);
 		return sortedHighScores;
 	}
-	
+
 	private TextField createNameField(final Color fontColor) {
 		TextField nameField = uiPack.textField(FontSize.SMALL);
 		nameField.getStyle().background = null;
@@ -161,59 +173,5 @@ public class HighScoresScreen implements Screen {
 		nameField.setMaxLength(maxNameLength);
 		return nameField;
 	}
-	
-	private final class HighScoresInputProcessor implements InputProcessor {
-		
-		@Override
-		public final boolean keyDown(final int keycode) {
-			return false;
-		}
 
-		@Override
-		public final boolean keyUp(final int keycode) {
-			return false;
-		}
-
-		@Override
-		public final boolean keyTyped(final char character) {
-			return false;
-		}
-
-		@Override
-		public final boolean touchDown(final int screenX, final int screenY, final int pointer, final int button) {
-			if (transitionTimer.isElapsed()) {
-				if (newScoreEntry != null) {
-					newScoreEntry.name = nameField.getText();
-					gameSession.addHighScore(newScoreEntry);
-					FileHandle gameSessionFile = Gdx.files.local(GameSession.FILE_PATH);
-					xmlContext.marshal(gameSession, gameSessionFile);
-				}
-				closedDelegate.notify(new DefaultEvent());
-				return true;
-			}
-			return false;
-		}
-
-		@Override
-		public final boolean touchUp(final int screenX, final int screenY, final int pointer, final int button) {
-			return false;
-		}
-
-		@Override
-		public final boolean touchDragged(final int screenX, final int screenY, final int pointer) {
-			return false;
-		}
-
-		@Override
-		public final boolean mouseMoved(final int screenX, final int screenY) {
-			return false;
-		}
-
-		@Override
-		public final boolean scrolled(final int amount) {
-			return false;
-		}
-
-	}
-	
 }

@@ -2,12 +2,14 @@ package dc.slideracer;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import dc.slideracer.level.LevelController;
 import dc.slideracer.screens.HighScoresScreen;
 import dc.slideracer.screens.LevelScreen;
+import dc.slideracer.screens.TitleScreen;
 import dc.slideracer.session.GameSession;
 import dc.slideracer.ui.UiPack;
 import dclib.eventing.DefaultListener;
@@ -19,7 +21,7 @@ import dclib.util.Point;
 import dclib.util.XmlContext;
 
 public class SlideRacerGame extends ApplicationAdapter {
-	
+
 	private final ScreenManager screenManager = new ScreenManager();
 	private final XmlContext xmlContext = new XmlContext(XmlBindings.BOUND_CLASSES);
 	private TextureCache textureCache;
@@ -27,7 +29,7 @@ public class SlideRacerGame extends ApplicationAdapter {
 	private ShapeRenderer shapeRenderer;
 	private UiPack uiPack;
 	private GameSession gameSession;
-	
+
 	@Override
 	public final void create () {
 		textureCache = createTextureCache();
@@ -36,7 +38,7 @@ public class SlideRacerGame extends ApplicationAdapter {
 		Point defaultScreenSize = new Point(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		uiPack = new UiPack("ui/test/uiskin.json", defaultScreenSize, "ui/ocr/ocr_32.fnt", "ui/ocr/ocr_24.fnt");
 		gameSession = xmlContext.unmarshal(Gdx.files.local(GameSession.FILE_PATH));
-		screenManager.add(createHighScoresScreen());
+		screenManager.add(createTitleScreen());
 	}
 
 	@Override
@@ -44,7 +46,7 @@ public class SlideRacerGame extends ApplicationAdapter {
 		ScreenUtils.clear();
 		screenManager.render();
 	}
-	
+
 	@Override
 	public final void resize(final int width, final int height) {
 		uiPack.scaleToScreenSize(width, height);
@@ -67,35 +69,44 @@ public class SlideRacerGame extends ApplicationAdapter {
 		textureCache.addTextures(Gdx.files.absolute(backgroundsPath), "bgs");
 		return textureCache;
 	}
-	
-	private LevelScreen createLevelScreen() {
+
+	private Screen createTitleScreen() {
+		final TitleScreen titleScreen = new TitleScreen(uiPack, textureCache.getTextureRegion("bgs/slideracer_title"));
+		titleScreen.addClosedListener(new DefaultListener() {
+			@Override
+			public void executed() {
+				screenManager.swap(createHighScoresScreen());
+			}
+		});
+		return titleScreen;
+	}
+
+	private Screen createLevelScreen() {
 		final LevelController controller = new LevelController(textureCache, spriteBatch, shapeRenderer);
 		final LevelScreen levelScreen = new LevelScreen(controller, uiPack);
 		controller.addFinishedListener(new DefaultListener() {
 			@Override
 			public void executed() {
 				int score = controller.getScore();
-				HighScoresScreen highScoresScreen = createHighScoresScreen(score);
-				screenManager.add(highScoresScreen);
+				screenManager.add(createHighScoresScreen(score));
 			}
 		});
 		return levelScreen;
 	}
-	
-	private HighScoresScreen createHighScoresScreen() {
+
+	private Screen createHighScoresScreen() {
 		return createHighScoresScreen(0);
 	}
-	
+
 	private HighScoresScreen createHighScoresScreen(final int score) {
 		final HighScoresScreen highScoresScreen = new HighScoresScreen(uiPack, gameSession, xmlContext, score);
 		highScoresScreen.addClosedListener(new DefaultListener() {
 			@Override
 			public void executed() {
-				LevelScreen levelScreen = createLevelScreen();
-				screenManager.swap(levelScreen);
+				screenManager.swap(createLevelScreen());
 			}
 		});
 		return highScoresScreen;
 	}
-	
+
 }

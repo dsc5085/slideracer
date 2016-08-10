@@ -253,7 +253,8 @@ public final class LevelController {
 		Vector2 leftCliffStartVertex = new Vector2(RACER_START_POSITION.x - pathBuffer, terrainY);
 		float rightCliffStartX = RACER_START_POSITION.x + RACER_SIZE.x + pathBuffer;
 		Vector2 rightCliffStartVertex = new Vector2(rightCliffStartX, terrainY);
-		return terrainFactory.create(leftCliffStartVertex, rightCliffStartVertex, TERRAIN_SECTION_HEIGHT);
+		return terrainFactory.create(leftCliffStartVertex, rightCliffStartVertex, TERRAIN_SECTION_HEIGHT, 
+				TERRAIN_SECTION_HEIGHT / 2);
 	}
 	
 	private void updateCamera() {
@@ -282,7 +283,7 @@ public final class LevelController {
 			Vector2 leftCliffStartVertex = topTerrainSection.getLeftCliffTopVertex();
 			Vector2 rightCliffStartVertex = topTerrainSection.getRightCliffTopVertex();
 			TerrainSection newTerrainSection = terrainFactory.create(leftCliffStartVertex, rightCliffStartVertex, 
-					TERRAIN_SECTION_HEIGHT);
+					TERRAIN_SECTION_HEIGHT, 0);
 			add(newTerrainSection);
 		}
 	}

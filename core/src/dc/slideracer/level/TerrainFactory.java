@@ -40,7 +40,7 @@ public class TerrainFactory {
 	}
 	
 	public final TerrainSection create(final Vector2 leftCliffStartVertex, final Vector2 rightCliffStartVertex, 
-			final float height) {
+			final float height, final float obstacleYOffset) {
 		final float outsideEdgeBuffer = racerBounds.width * 10;
 		float bottom = leftCliffStartVertex.y;
 		float top = bottom + height;
@@ -55,7 +55,8 @@ public class TerrainFactory {
 		float rightOutsideEdgeX = VertexUtils.maxX(rightCliffEdgeVerticesArray) + outsideEdgeBuffer;
 		List<Vector2> rightCliffVertices = createCliffVertices(rightCliffEdgeVertices, rightOutsideEdgeX);
 		Entity rightCliff = createTerrain(rightCliffVertices);
-		List<Entity> obstacles = createObstacles(leftCliffVertices, rightCliffVertices, leftCliffStartVertex.y, top);
+		float obstacleStartY = leftCliffStartVertex.y + obstacleYOffset;
+		List<Entity> obstacles = createObstacles(leftCliffVertices, rightCliffVertices, obstacleStartY, top);
 		float backgroundWidth = rightOutsideEdgeX - leftOutsideEdgeX;
 		Rectangle backgroundBounds = new Rectangle(leftOutsideEdgeX, bottom, backgroundWidth, height);
 		Entity background = entityFactory.createBackground(backgroundBounds);
@@ -135,11 +136,11 @@ public class TerrainFactory {
 	}
 	
 	private List<Entity> createObstacles(final List<Vector2> leftCliffVertices, 
-			final List<Vector2> rightCliffVertices, final float terrainBottom, final float terrainTop) {
+			final List<Vector2> rightCliffVertices, final float obstacleStartY, final float terrainTop) {
 		final float obstacleHeight = racerBounds.height * 1.5f;
 		final FloatRange yOffsetRange = new FloatRange(3 * racerBounds.height, 6 * racerBounds.height);
 		List<Entity> obstacles = new ArrayList<Entity>();
-		float obstacleY = terrainBottom + racerBounds.height;
+		float obstacleY = obstacleStartY + racerBounds.height;
 		while (true) {
 			obstacleY += yOffsetRange.random();
 			FloatRange obstacleYRange = new FloatRange(obstacleY, obstacleY + obstacleHeight);
